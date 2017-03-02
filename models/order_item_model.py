@@ -4,7 +4,7 @@
 # Created with YooLiang Technology (侑良科技).
 # Author: Qi-Liang Wen (温啓良）
 # Web: http://www.yooliang.com/
-# Date: 2015/7/12.
+# Date: 2017/3/1.
 
 from argeweb import BasicModel
 from argeweb import Fields
@@ -127,21 +127,3 @@ class OrderItemModel(BasicModel):
                 self.quantity = 0
             sku.pre_order_quantity = sku.pre_order_quantity - abs(int(self.quantity_has_count)) + abs(self.quantity)
             sku.put()
-
-    def quantity_can_be_order(self, user=None, sku=None):
-        if sku is None:
-            sku = self.sku.get()
-        if self.order_type_value > 0:
-            return 999
-        if user:
-            if self.quantity is not None:
-                return sku.quantity - sku.estimate + self.quantity
-        return sku.quantity - sku.estimate
-
-
-def get_quantity_with_shopping_car(sku, user=None, *args, **kwargs):
-    if user:
-        cart_item = OrderItemModel.get(user, sku)
-        if cart_item:
-            return cart_item.quantity_can_be_order(user, sku)
-    return sku.quantity - sku.estimate

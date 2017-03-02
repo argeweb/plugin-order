@@ -6,24 +6,19 @@
 # Web: http://www.yooliang.com/
 # Date: 2017/3/1.
 
+
 from argeweb import Controller, scaffold, route_menu, route_with, route
 from argeweb.components.pagination import Pagination
+from argeweb.components.csrf import CSRF, csrf_protect
 from argeweb.components.search import Search
 
 
-class OrderItem(Controller):
+class OrderRule(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search)
         pagination_actions = ('list',)
         pagination_limit = 50
 
-    class Scaffold:
-        display_in_list = ('user', 'order_type', 'title', 'spec_full_name', 'price', 'quantity', 'created')
-
+    @route_menu(list_name=u'backend', text=u'規則', sort=1331, group=u'銷售管理', need_hr=True)
     def admin_list(self):
-        def query_factory_only_codefile(controller):
-            m = self.meta.Model
-            return m.query().order(-m.sort, -m.key)
-
-        self.scaffold.query_factory = query_factory_only_codefile
         return scaffold.list(self)
