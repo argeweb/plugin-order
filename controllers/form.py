@@ -16,6 +16,7 @@ from ..models.order_item_model import OrderModel, OrderItemModel
 from ..models.payment_type_model import PaymentTypeModel
 from ..models.freight_type_model import FreightTypeModel
 from ..models.freight_model import FreightModel
+from plugins.user_shop_point.models.user_shop_point_model import UserShopPointModel
 from plugins.mail import Mail
 from plugins.shopping_cart.models.shopping_cart_item_model import ShoppingCartItemModel
 from plugins.user_contact_data.models.user_contact_data_model import UserContactDataModel
@@ -72,7 +73,11 @@ class Form(Controller):
         order.freight_amount = self.params.get_float('freight_amount')
         order.shopping_cash = self.params.get_float('shopping_cash')
         order.need_pay_amount = self.params.get_float('total_amount')
-        order.total_amount = order.need_pay_amount + order.shopping_cash
+        order.total_amount = order.subtotal_amount + order.freight_amount
+        if order.shopping_cash > order.total_amount:
+            order.shopping_cash = order.total_amount
+            order.need_pay_amount = 0
+
         order.status = 1
         order.payment_status = 0
         order.freight_status = 0
@@ -82,5 +87,21 @@ class Form(Controller):
             else:
                 order.payment_status = 6
         order.put()
+
+        if order.shopping_cash > 0:
+            self.session['shop_point_use'] = 0
+            user_point_item = UserShopPointModel.get_or_create(self.application_user)
+            user_point_item.decrease_point(
+                order.shopping_cash, u'[系統] 由訂單 %s 扣除' % order.order_no,
+                order.order_no, order.total_amount)
+            user_point_item.put()
+
+        for item in ShoppingCartItemModel.all_with_user(self.application_user).fetch():
+            if item.can_add_to_order == True:
+                order_item = OrderItemModel.create_from_shopping_cart_item(item)
+                order_item.order = order.key
+                order_item.put()
+                item.quantity_has_count = 0
+                item.key.delete()
         self.context['data'] = {'result': 'success', 'order': self.util.encode_key(order)}
         self.context['message'] = u'已成功加入。'

@@ -21,7 +21,7 @@ class Order(Controller):
 
     class Scaffold:
         # display_in_list = ('title_lang_zhtw', 'name')
-        pass
+        hidden_in_form = ['name', 'user', 'payment_type_title', 'freight_type_title',]
 
     @route
     @route_menu(list_name=u'backend', text=u'新訂單', sort=1301, group=u'銷售管理', parameter=u'status=1')
@@ -37,3 +37,10 @@ class Order(Controller):
         setattr(self, 'status', self.params.get_integer('status', 1))
         self.scaffold.query_factory = query_factory_with_status
         return scaffold.list(self)
+
+    def admin_view(self, key):
+        from ..models.order_item_model import OrderItemModel
+        scaffold.view(self, key)
+        order = self.context[self.scaffold.singular]
+        self.context['order'] = order
+        self.context['items'] = OrderItemModel.all_with_order(order=order)

@@ -16,7 +16,7 @@ from freight_type_model import FreightTypeModel
 class OrderModel(BasicModel):
     name = Fields.StringProperty(verbose_name=u'系統編號')
     user = Fields.KeyProperty(verbose_name=u'使用者', kind=ApplicationUserModel)
-    order_no = Fields.StringProperty(verbose_name=u'訂單編號')
+    order_no = Fields.StringProperty(verbose_name=u'訂單編號', default=u'')
     purchaser_name = Fields.StringProperty(verbose_name=u'購買人姓名')
     purchaser_email = Fields.StringProperty(verbose_name=u'購買人 E-Mail')
     recipient_name = Fields.StringProperty(verbose_name=u'收件人姓名')
@@ -28,8 +28,12 @@ class OrderModel(BasicModel):
     recipient_address_district = Fields.StringProperty(verbose_name=u'收件鄉鎮市區')
     recipient_address_zip = Fields.StringProperty(verbose_name=u'收件郵遞區號')
     recipient_address_detail = Fields.StringProperty(verbose_name=u'收件地址 ')
-    payment_type = Fields.KeyProperty(verbose_name=u'付款方式', kind=PaymentTypeModel)
-    freight_type = Fields.KeyProperty(verbose_name=u'寄送方式', kind=FreightTypeModel)
+
+    sku_link = Fields.SidePanelProperty(verbose_name=u'訂購項目', text=u'點擊此處查看 訂購項目',
+                                        uri='admin:order:order_item:list_for_side_panel')
+
+    payment_type = Fields.CategoryProperty(verbose_name=u'付款方式', kind=PaymentTypeModel)
+    freight_type = Fields.CategoryProperty(verbose_name=u'寄送方式', kind=FreightTypeModel)
     payment_type_title = Fields.StringProperty(verbose_name=u'付款方式')
     freight_type_title = Fields.StringProperty(verbose_name=u'寄送方式')
     message = Fields.StringProperty(verbose_name=u'備註')
@@ -70,6 +74,14 @@ class OrderModel(BasicModel):
         super(OrderModel, self).before_put()
         if self.order_no is u'':
             self.order_no = self.gen_order_no()
+        try:
+            self.payment_type_title = self.payment_type.get().title
+        except:
+            self.payment_type_title = u''
+        try:
+            self.freight_type_title = self.freight_type.get().title
+        except:
+            self.freight_type_title = u''
         status_text_list = [
             u'尚未確認', u'新訂單', u'已付款', u'備貨中', u'已出貨', u'已結單', u'異常流程', u'取消訂單']
         payment_status_text_list = [
@@ -79,4 +91,3 @@ class OrderModel(BasicModel):
         self.status_text = status_text_list[int(self.status)]
         self.payment_status_text = payment_status_text_list[int(self.payment_status)]
         self.freight_status_text = freight_status_text_list[int(self.freight_status)]
-

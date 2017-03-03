@@ -9,8 +9,10 @@
 from argeweb import ViewFunction, ViewDatastore
 from models import *
 from models.order_model import OrderModel
+from models.order_item_model import OrderItemModel
 
 ViewDatastore.register('order_list', OrderModel.all)
+ViewDatastore.register('order_items', OrderItemModel.all_with_order)
 
 plugins_helper = {
     'title': u'訂單管理模組',
@@ -25,6 +27,16 @@ plugins_helper = {
                 {'action': 'view', 'name': u'檢視訂單管理'},
                 {'action': 'delete', 'name': u'刪除訂單管理'},
                 {'action': 'plugins_check', 'name': u'啟用停用模組'},
+            ]
+        },
+        'order_item': {
+            'group': u'訂單項目',
+            'actions': [
+                {'action': 'list', 'name': u'訂單項目'},
+                {'action': 'add', 'name': u'新增訂單項目'},
+                {'action': 'edit', 'name': u'編輯訂單項目'},
+                {'action': 'view', 'name': u'檢視訂單項目'},
+                {'action': 'delete', 'name': u'刪除訂單項目'},
             ]
         },
         'order_rule': {

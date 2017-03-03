@@ -23,7 +23,8 @@ class OrderItemModel(BasicModel):
         }
     name = Fields.StringProperty(verbose_name=u'系統編號')
     sku = Fields.KeyProperty(verbose_name=u'最小庫存單位', kind=StockKeepingUnitModel)
-    user = Fields.KeyProperty(verbose_name=u'使用者', kind=ApplicationUserModel)
+    user = Fields.KeyProperty(verbose_name=u'所屬使用者', kind=ApplicationUserModel)
+    order = Fields.KeyProperty(verbose_name=u'所屬訂單', kind=OrderModel)
 
     title = Fields.StringProperty(verbose_name=u'產品名稱')
     product_no = Fields.StringProperty(verbose_name=u'產品編號')
@@ -40,6 +41,18 @@ class OrderItemModel(BasicModel):
     #  0 = 現貨, 1=預購
     order_type = Fields.StringProperty(verbose_name=u'訂購方式')
     order_type_value = Fields.IntegerProperty(verbose_name=u'訂購方式(值)')
+
+    @classmethod
+    def all_with_user(cls, user=None, *args, **kwargs):
+        if user is None:
+            return cls.query().order(-cls.sort)
+        return cls.query(cls.user==user.key).order(-cls.sort)
+
+    @classmethod
+    def all_with_order(cls, order=None, *args, **kwargs):
+        if order is None:
+            return cls.query().order(-cls.sort)
+        return cls.query(cls.order==order.key).order(-cls.sort)
 
     @classmethod
     def get(cls, user, sku, order_type_value=0):
@@ -66,7 +79,7 @@ class OrderItemModel(BasicModel):
         item.product_name = product.name
         item.sku_full_name = sku.sku_full_name
         item.spec_full_name = sku.spec_full_name
-        item.check_quantity(quantity)
+        item.change_quantity(quantity)
         item.put()
         return item
 
@@ -85,6 +98,13 @@ class OrderItemModel(BasicModel):
                 sku = item.sku.get()
                 sku.estimate = sku.estimate - item.quantity_has_count
                 sku.put()
+
+    @classmethod
+    def create_from_shopping_cart_item(cls, shopping_cart_item):
+        item = cls()
+        for p in shopping_cart_item._properties:
+            setattr(item, p, getattr(shopping_cart_item, p))
+        return item
 
     def change_quantity(self, quantity):
         if hasattr(self, '_sku'):

@@ -21,9 +21,18 @@ class OrderItem(Controller):
         display_in_list = ('user', 'order_type', 'title', 'spec_full_name', 'price', 'quantity', 'created')
 
     def admin_list(self):
+        return scaffold.list(self)
+
+    @route
+    def admin_list_for_side_panel(self, target=''):
+        if target == '--no-record--':
+            self.context['no_record_data'] = True
+            return
+        order_record = self.util.decode_key(target).get()
+
         def query_factory_only_codefile(controller):
             m = self.meta.Model
-            return m.query().order(-m.sort, -m.key)
+            return m.all_with_order(order_record)
 
         self.scaffold.query_factory = query_factory_only_codefile
         return scaffold.list(self)

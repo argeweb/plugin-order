@@ -1,0 +1,92 @@
+{% extends "backend/form.html" %}
+{% block layout_content %}
+    <div class="wrapper wrapper-content">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox-content p-xl">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <address>
+                                <strong>{{ order.recipient_name }}</strong><br>
+                                {{ order.recipient_address_zip }}-{{ order.recipient_address_city }}{{ order.recipient_address_district }}{{ order.recipient_address_detail }}
+                                <br>
+                                <abbr title="Phone">聯絡電話：</abbr> {{ order.recipient_telephone }} | {{ order.recipient_mobile }}
+                            </address>
+                        </div>
+
+                        <div class="col-sm-6 text-right">
+                            <h4>訂單編號：</h4>
+                            <h4 class="text-navy">{{ order.order_no }}</h4>
+                            <p>
+                                <span><strong>日期：</strong> {{ print_value(order.created) }}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive m-t">
+                        <table class="table invoice-table">
+                            <thead>
+                                <tr style="background: #999;">
+                                    <th>品項</th>
+                                    <th>數量</th>
+                                    <th>單價</th>
+                                    <th>小計</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ item.title }} {{ item.spec_full_name }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ item.price }}元</td>
+                                    <td>${{ item.quantity *  item.price }}元</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /table-responsive -->
+
+                    <table class="table invoice-total">
+                        <tbody>
+                            <tr>
+                                <td><strong>小計金額：</strong>
+                                </td>
+                                <td>${{ order.subtotal_amount }}元</td>
+                            </tr>
+                            <tr>
+                                <td><strong>運費：</strong>
+                                </td>
+                                <td>${{ order.freight_amount }}元</td>
+                            </tr>
+                            <tr>
+                                <td><strong>總金額：</strong>
+                                </td>
+                                <td>${{ order.total_amount }}元</td>
+                            </tr>
+                            <tr>
+                                <td><strong>使用的購物金：</strong>
+                                </td>
+                                <td>${{ order.shopping_cash }}元</td>
+                            </tr>
+                            <tr>
+                                <td><strong>應付金額：</strong>
+                                </td>
+                                <td>${{ order.need_pay_amount }}元</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="text-right">
+                        <button class="btn btn-primary"><i class="fa fa-dollar"></i> 去付款</button>
+                    </div>
+
+                    <div class="well m-t"><strong>注意：</strong> 请在30日内完成付款，否则订单会自动取消。
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}
