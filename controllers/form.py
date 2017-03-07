@@ -60,6 +60,8 @@ class Form(Controller):
         order.recipient_address_district = self.params.get_string('address_district')
         order.recipient_address_zip = self.params.get_string('address_zip')
         order.recipient_address_detail = self.params.get_string('address_detail')
+        order.recipient_store_number = self.params.get_string('store_number')
+        order.recipient_store_name = self.params.get_string('store_name')
         order.message = self.params.get_string('message')
 
         payment_type = self.params.get_ndb_record('payment_type')
