@@ -98,6 +98,7 @@ class Form(Controller):
                 order.order_no, order.total_amount)
             user_point_item.put()
 
+        items = []
         for item in ShoppingCartItemModel.all_with_user(self.application_user).fetch():
             if item.can_add_to_order == True:
                 order_item = OrderItemModel.create_from_shopping_cart_item(item)
@@ -105,5 +106,18 @@ class Form(Controller):
                 order_item.put()
                 item.quantity_has_count = 0
                 item.key.delete()
+                items.append(u"%s %s 數量: %s" % (order_item.product_name, order_item.spec_full_name, order_item.quantity))
+        mail = Mail(self)
+        data_for_mail = {
+            'site_name': self.host_information.site_name,
+            'name': self.application_user.name,
+            'email': self.application_user.email,
+            'created': self.util.localize_time(datetime.now()),
+            'domain': self.host_information.host,
+            'order_items': u"<br>".join(items)
+        }
+        data_for_mail.update(order)
+        r = mail.send_width_template('order_create_send_to_user', self.application_user.email, data_for_mail)
+        r = mail.send_width_template('order_create_send_to_admin', self.application_user.email, data_for_mail)
         self.context['data'] = {'result': 'success', 'order': self.util.encode_key(order)}
         self.context['message'] = u'已成功加入。'
