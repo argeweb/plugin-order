@@ -116,8 +116,9 @@ class Form(Controller):
             'domain': self.host_information.host,
             'order_items': u"<br>".join(items)
         }
-        data_for_mail.update(order)
+        for p in order._properties:
+            data_for_mail[p] = getattr(order, p)
         r = mail.send_width_template('order_create_send_to_user', self.application_user.email, data_for_mail)
-        r = mail.send_width_template('order_create_send_to_admin', self.application_user.email, data_for_mail)
+        r = mail.send_width_template('order_create_send_to_admin', None, data_for_mail)
         self.context['data'] = {'result': 'success', 'order': self.util.encode_key(order)}
         self.context['message'] = u'已成功加入。'
