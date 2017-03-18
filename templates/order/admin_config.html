@@ -1,0 +1,100 @@
+{% extends "backend/config.html" %}
+{% block layout_before_content %}
+<div class="ibox-content m-b-sm border-bottom">
+    <div class="p-xs">
+        <div class="pull-left m-r-md">
+            <i class="material-icons mid-icon brand-text-color">shopping_cart</i>
+        </div>
+        <h2>產品</h2>
+        <span>透過拖曳來變更分類的順序與其所屬的分類。</span>
+        {% if last_record_date %}<span class="text-muted small pull-right visible-sm visible-md visible-lg">最後更新：<i class="icon">access_time</i> {{ print_value(last_record_date) }}</span>{% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block layout_content %}
+    <div class="col-sm-12" style=" margin-top: 10px;margin-bottom: 30px;">
+    <div class="row">
+        <div class="col-sm-6">
+
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>訂單狀態</h5>
+                </div>
+                <div class="ibox-content">
+                    <p>我们提供基于H+的二次开发服务，具体费用请联系作者。</p>
+
+                    <p>同时，我们也提供以下服务：</p>
+                    <ol>
+                        <li>基于WordPress的网站建设和主题定制</li>
+                        <li>PSD转WordPress主题</li>
+                        <li>PSD转XHTML</li>
+                        <li>Html页面（CSS+XHTML+jQuery）制作</li>
+                    </ol>
+                    {% if uri_exists_with_permission(controller="order_status", action="list") %}<a href="{{ uri(controller="order_status", action="list") }}">設定</a>{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>寄送狀態</h5>
+                </div>
+                <div class="ibox-content">
+                    <p>我们提供基于H+的二次开发服务，具体费用请联系作者。</p>
+
+                    <p>同时，我们也提供以下服务：</p>
+                    <ol>
+                        <li>基于WordPress的网站建设和主题定制</li>
+                        <li>PSD转WordPress主题</li>
+                        <li>PSD转XHTML</li>
+                        <li>Html页面（CSS+XHTML+jQuery）制作</li>
+                    </ol>
+                    {% if uri_exists_with_permission(controller="freight_status", action="list") %}<a href="{{ uri(controller="freight_status", action="list") }}">設定</a>{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>付款狀態</h5>
+                </div>
+                <div class="ibox-content">
+                    <p>我们提供基于H+的二次开发服务，具体费用请联系作者。</p>
+
+                    <p>同时，我们也提供以下服务：</p>
+                    <ol>
+                        <li>基于WordPress的网站建设和主题定制</li>
+                        <li>PSD转WordPress主题</li>
+                        <li>PSD转XHTML</li>
+                        <li>Html页面（CSS+XHTML+jQuery）制作</li>
+                    </ol>
+                    {% if uri_exists_with_permission(controller="payment_status", action="list") %}<a href="{{ uri(controller="payment_status", action="list") }}">設定</a>{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>重置</h5>
+                </div>
+                <div class="ibox-content">
+                    <p>重置下列項目。</p>
+                    <ol>
+                        <li>訂單狀態</li>
+                        <li>寄送狀態</li>
+                        <li>付款狀態</li>
+                    </ol>
+                    {% if uri_exists_with_permission(controller="order", action="reset_config") %}
+                        <a href="{{ uri(controller="order", action="reset_config") }}" class="btn btn-json">重置</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+{% endblock %}
+{% block layout_buttons %}{% endblock %}

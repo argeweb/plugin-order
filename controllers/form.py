@@ -12,14 +12,17 @@ from argeweb import auth, add_authorizations
 from argeweb.components.pagination import Pagination
 from argeweb.components.csrf import CSRF, csrf_protect
 from argeweb.components.search import Search
+from plugins.mail import Mail
+from plugins.user_shop_point.models.user_shop_point_model import UserShopPointModel
+from plugins.shopping_cart.models.shopping_cart_item_model import ShoppingCartItemModel
+from plugins.user_contact_data.models.user_contact_data_model import UserContactDataModel
+from ..models.freight_model import FreightModel
 from ..models.order_item_model import OrderModel, OrderItemModel
 from ..models.payment_type_model import PaymentTypeModel
 from ..models.freight_type_model import FreightTypeModel
-from ..models.freight_model import FreightModel
-from plugins.user_shop_point.models.user_shop_point_model import UserShopPointModel
-from plugins.mail import Mail
-from plugins.shopping_cart.models.shopping_cart_item_model import ShoppingCartItemModel
-from plugins.user_contact_data.models.user_contact_data_model import UserContactDataModel
+from ..models.order_status_model import OrderStatusModel
+from ..models.payment_status_model import PaymentStatusModel
+from ..models.freight_status_model import FreightStatusModel
 
 
 class Form(Controller):
@@ -80,14 +83,15 @@ class Form(Controller):
             order.shopping_cash = order.total_amount
             order.need_pay_amount = 0
 
-        order.status = 1
-        order.payment_status = 0
-        order.freight_status = 0
+        order.status = OrderStatusModel.find_by_name("unconfirmed")
+        order.freight_status = FreightStatusModel.find_by_name("unconfirmed")
         if order.shopping_cash > 0:
             if order.need_pay_amount == 0:
-                order.payment_status = 5
+                order.payment_status = PaymentStatusModel.find_by_name("full_payment_with_point")
             else:
-                order.payment_status = 6
+                order.payment_status = PaymentStatusModel.find_by_name("part_payment_with_point")
+        else:
+            order.payment_status = PaymentStatusModel.find_by_name("unconfirmed")
         order.put()
 
         if order.shopping_cash > 0:
