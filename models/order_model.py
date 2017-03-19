@@ -76,6 +76,15 @@ class OrderModel(BasicModel):
         n = localize(datetime.today()).strftime('%Y%m%d %H%M%S').split(' ')
         return '%s-%s-%s' % (n[0], self.name[0:4], n[1])
 
+    def set_order_status(self, name):
+        self.status = OrderStatusModel.find_by_name(name).key
+
+    def set_freight_status(self, name):
+        self.freight_status = FreightStatusModel.find_by_name(name).key
+
+    def set_payment_status(self, name):
+        self.payment_status = PaymentStatusModel.find_by_name(name).key
+
     def before_put(self):
         super(OrderModel, self).before_put()
         if self.order_no is u'':

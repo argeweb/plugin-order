@@ -1,1 +1,40 @@
 {% extends "backend/list.html" %}
+{%- block layout_header -%}
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>訂購項目
+                        <small class="m-l-sm">{{ order_record.order_no }}</small>
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block layout_content %}
+    <div class="row">
+        {%- set list = context[scaffolding.plural] -%}
+        {% for item in list %}
+        <div class="col-xs-12">
+            <div class="contact-box">
+                <div class="col-xs-4">
+                    <div class="text-center">
+                        <img alt="image" class="img-circle m-t-xs img-responsive" src="{{ item.product_image }}">
+                        <div class="m-t-xs font-bold">{{ item.order_type }}</div>
+                    </div>
+                </div>
+                <div class="col-xs-8">
+                    <h3><strong>{{ item.title }}</strong></h3>
+                    <p><i class="fa fa-map-marker"></i> {{ item.spec_full_name }}</p>
+                    <div>
+                        <strong>數量: {{ item.quantity }}</strong><br>
+                        價格: {{ item.price }}<br>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+        {% endfor -%}
+    </div>
+{% endblock %}

@@ -20,6 +20,13 @@ class OrderItem(Controller):
     class Scaffold:
         display_in_list = ('user', 'order_type', 'title', 'spec_full_name', 'price', 'quantity', 'created')
 
+    def on_scaffold_before_apply(self, controller, container, item):
+        item.change_quantity(item.quantity)
+
+    def admin_add(self):
+        self.events.scaffold_before_apply += self.on_scaffold_before_apply
+        scaffold.add(self)
+
     def admin_list(self):
         return scaffold.list(self)
 
@@ -35,4 +42,5 @@ class OrderItem(Controller):
             return m.all_with_order(order_record)
 
         self.scaffold.query_factory = query_factory_only_codefile
+        self.context['order_record'] = order_record
         return scaffold.list(self)

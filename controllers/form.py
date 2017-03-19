@@ -83,15 +83,19 @@ class Form(Controller):
             order.shopping_cash = order.total_amount
             order.need_pay_amount = 0
 
-        order.status = OrderStatusModel.find_by_name("unconfirmed")
-        order.freight_status = FreightStatusModel.find_by_name("unconfirmed")
+        order_status = 'new_order'
+        freight_status = 'unconfirmed'
+        payment_status = 'unconfirmed'
         if order.shopping_cash > 0:
             if order.need_pay_amount == 0:
-                order.payment_status = PaymentStatusModel.find_by_name("full_payment_with_point")
+                order_status = 'already_paid'
+                payment_status = 'full_payment_with_point'
             else:
-                order.payment_status = PaymentStatusModel.find_by_name("part_payment_with_point")
-        else:
-            order.payment_status = PaymentStatusModel.find_by_name("unconfirmed")
+                payment_status = 'part_payment_with_point'
+
+        order.set_order_status(order_status)
+        order.set_freight_status(freight_status)
+        order.set_payment_status(payment_status)
         order.put()
 
         if order.shopping_cash > 0:

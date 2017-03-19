@@ -32,11 +32,12 @@ class Order(Controller):
     @route_menu(list_name=u'backend', text=u'異常流程', sort=1306, group=u'銷售管理', parameter=u'status=abnormal_flow')
     @route_menu(list_name=u'backend', text=u'取消訂單', sort=1307, group=u'銷售管理', parameter=u'status=order_cancel')
     def admin_list(self):
-        def query_factory_with_status(controller):
-            return controller.meta.Model.all_with_status(controller.status)
+        if 'query' not in self.request.params:
+            def query_factory_with_status(controller):
+                return controller.meta.Model.all_with_status(controller.status)
 
-        setattr(self, 'status', self.params.get_string('status', ''))
-        self.scaffold.query_factory = query_factory_with_status
+            setattr(self, 'status', self.params.get_string('status', ''))
+            self.scaffold.query_factory = query_factory_with_status
         return scaffold.list(self)
 
     def admin_view(self, key):
