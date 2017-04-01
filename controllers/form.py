@@ -28,8 +28,6 @@ from ..models.freight_status_model import FreightStatusModel
 class Form(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search, CSRF)
-        pagination_actions = ('list',)
-        pagination_limit = 50
         default_view = 'json'
         Model = OrderModel
 
@@ -50,53 +48,18 @@ class Form(Controller):
     def check_out(self):
         if self.check():
             return
-        order = OrderModel()
-        order.user = self.application_user.key
-        order.purchaser_name = self.application_user.name
-        order.purchaser_email = self.application_user.email
-        order.recipient_name = self.params.get_string('name')
-        order.recipient_telephone = self.params.get_string('telephone')
-        order.recipient_mobile = self.params.get_string('mobile')
-        order.recipient_email = self.params.get_string('email')
-        order.recipient_address_country = self.params.get_string('address_country')
-        order.recipient_address_city = self.params.get_string('address_city')
-        order.recipient_address_district = self.params.get_string('address_district')
-        order.recipient_address_zip = self.params.get_string('address_zip')
-        order.recipient_address_detail = self.params.get_string('address_detail')
-        order.recipient_store_number = self.params.get_string('store_number')
-        order.recipient_store_name = self.params.get_string('store_name')
-        order.message = self.params.get_string('message')
+        # 貨幣
+        currency = None
+        try:
+            from plugins.currency.models.currency_model import CurrencyModel
+            currency = CurrencyModel.get_current_or_main_currency_with_controller(self)
+        except:
+            pass
+        order, items = OrderModel.process_new_order(self.application_user, self.params, self.session, currency)
 
-        payment_type = self.params.get_ndb_record('payment_type')
-        order.payment_type = payment_type.key
-        order.payment_type_title = payment_type.title
-        freight_type = self.params.get_ndb_record('freight_type')
-        order.freight_type = freight_type.key
-        order.freight_type_title = freight_type.title
-
-        order.subtotal_amount = self.params.get_float('subtotal_amount')
-        order.freight_amount = self.params.get_float('freight_amount')
-        order.shopping_cash = self.params.get_float('shopping_cash')
-        order.need_pay_amount = self.params.get_float('total_amount')
-        order.total_amount = order.subtotal_amount + order.freight_amount
-        if order.shopping_cash > order.total_amount:
-            order.shopping_cash = order.total_amount
-            order.need_pay_amount = 0
-
-        order_status = 'new_order'
-        freight_status = 'unconfirmed'
-        payment_status = 'unconfirmed'
-        if order.shopping_cash > 0:
-            if order.need_pay_amount == 0:
-                order_status = 'already_paid'
-                payment_status = 'full_payment_with_point'
-            else:
-                payment_status = 'part_payment_with_point'
-
-        order.set_order_status(order_status)
-        order.set_freight_status(freight_status)
-        order.set_payment_status(payment_status)
-        order.put()
+        items_for_mail = []
+        for item in items:
+            items_for_mail.append(u"%s %s 數量: %s" % (item.product_name, item.spec_full_name, item.quantity))
 
         if order.shopping_cash > 0:
             self.session['shop_point_use'] = 0
@@ -105,16 +68,6 @@ class Form(Controller):
                 order.shopping_cash, u'[系統] 由訂單 %s 扣除' % order.order_no,
                 order.order_no, order.total_amount)
             user_point_item.put()
-
-        items = []
-        for item in ShoppingCartItemModel.all_with_user(self.application_user).fetch():
-            if item.can_add_to_order == True:
-                order_item = OrderItemModel.create_from_shopping_cart_item(item)
-                order_item.order = order.key
-                order_item.put()
-                item.quantity_has_count = 0
-                item.key.delete()
-                items.append(u"%s %s 數量: %s" % (order_item.product_name, order_item.spec_full_name, order_item.quantity))
         mail = Mail(self)
         data_for_mail = {
             'site_name': self.host_information.site_name,
@@ -122,7 +75,7 @@ class Form(Controller):
             'email': self.application_user.email,
             'created': self.util.localize_time(datetime.now()),
             'domain': self.host_information.host,
-            'order_items': u"<br>".join(items)
+            'order_items': u"<br>".join(items_for_mail)
         }
         for p in order._properties:
             data_for_mail[p] = getattr(order, p)

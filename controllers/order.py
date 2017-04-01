@@ -16,8 +16,6 @@ from argeweb.components.search import Search
 class Order(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search)
-        pagination_actions = ('list',)
-        pagination_limit = 50
 
     class Scaffold:
         # display_in_list = ('title_lang_zhtw', 'name')
@@ -36,8 +34,20 @@ class Order(Controller):
             def query_factory_with_status(controller):
                 return controller.meta.Model.all_with_status(controller.status)
 
-            setattr(self, 'status', self.params.get_string('status', ''))
+            status = self.params.get_string('status', '')
+            setattr(self, 'status', status)
             self.scaffold.query_factory = query_factory_with_status
+            list_field = {
+                'new_order': ['order_no', 'created', 'payment_type', 'payment_status', 'currency_title', 'currency_need_pay_amount'],
+                'already_paid': ['order_no', 'created', 'payment_type', 'payment_status', 'currency_title', 'currency_need_pay_amount'],
+                # 'stocking': [],
+                # 'shipped': [],
+                # 'closed': [],
+                # 'abnormal_flow': [],
+                # 'order_cancel': [],
+            }
+            if status in list_field:
+                self.scaffold.display_in_list = list_field[status]
         return scaffold.list(self)
 
     def admin_view(self, key):

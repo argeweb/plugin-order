@@ -16,8 +16,6 @@ from argeweb.components.search import Search
 class OrderRule(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search)
-        pagination_actions = ('list',)
-        pagination_limit = 50
 
     @route_menu(list_name=u'backend', text=u'規則', sort=1331, group=u'銷售管理', need_hr=True)
     def admin_list(self):

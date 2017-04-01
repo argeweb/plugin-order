@@ -16,8 +16,6 @@ from argeweb.components.search import Search
 class PaymentStatus(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search)
-        pagination_actions = ('list',)
-        pagination_limit = 50
 
     def admin_list(self):
         return scaffold.list(self)

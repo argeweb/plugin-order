@@ -11,6 +11,6 @@ from argeweb import Fields
 
 
 class PaymentTypeModel(BasicModel):
-    name = Fields.StringProperty(verbose_name=u'系統編號')
+    name = Fields.StringProperty(verbose_name=u'識別名稱')
     title = Fields.StringProperty(default=u'未命名', verbose_name=u'付款方式名稱')
     is_enable = Fields.BooleanProperty(default=True, verbose_name=u'啟用')

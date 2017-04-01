@@ -21,14 +21,15 @@ class OrderItemModel(BasicModel):
             'title_lang_zhtw': u'標題',
             'content_lang_zhtw': u'內容',
         }
-    name = Fields.StringProperty(verbose_name=u'系統編號')
+    name = Fields.StringProperty(verbose_name=u'識別名稱')
     sku = Fields.KeyProperty(verbose_name=u'最小庫存單位', kind=StockKeepingUnitModel)
     user = Fields.KeyProperty(verbose_name=u'所屬使用者', kind=ApplicationUserModel)
     order = Fields.KeyProperty(verbose_name=u'所屬訂單', kind=OrderModel)
+    order_be_delete = Fields.BooleanProperty(verbose_name=u'狀態是否被刪除', default=False)
 
     title = Fields.StringProperty(verbose_name=u'產品名稱')
     product_no = Fields.StringProperty(verbose_name=u'產品編號')
-    product_name = Fields.StringProperty(verbose_name=u'產品圖片', default=u'')
+    product_name = Fields.StringProperty(verbose_name=u'產品名稱(系統)', default=u'')
     product_image = Fields.StringProperty(verbose_name=u'產品圖片', default=u'')
     sku_full_name = Fields.StringProperty(verbose_name=u'產品最小庫存名稱')
     spec_full_name = Fields.StringProperty(verbose_name=u'完整規格名稱')

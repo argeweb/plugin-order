@@ -14,7 +14,7 @@ class OrderRuleModel(BasicModel):
     """
 
     """
-    name = Fields.StringProperty(verbose_name=u'系統編號')
+    name = Fields.StringProperty(verbose_name=u'識別名稱')
     title = Fields.StringProperty(verbose_name=u'規則名稱', default=u'未命名規則')
     check_target = Fields.StringProperty(verbose_name=u'檢查對象', default=u'')
     check_target_id = Fields.StringProperty(verbose_name=u'對象編號', default=u'')

@@ -16,8 +16,6 @@ from argeweb.components.search import Search
 class FreightType(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search)
-        pagination_actions = ('list',)
-        pagination_limit = 50
 
     @route_menu(list_name=u'backend', text=u'寄送方式', sort=1321, group=u'銷售管理')
     def admin_list(self):

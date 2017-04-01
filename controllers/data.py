@@ -17,8 +17,6 @@ from plugins.mail import Mail
 class Data(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search, CSRF)
-        pagination_actions = ('list',)
-        pagination_limit = 50
         default_view = 'json'
 
     @route
@@ -28,14 +26,27 @@ class Data(Controller):
         from ..models.freight_model import FreightModel, FreightTypeModel
         from ..models.payment_type_model import PaymentTypeModel
         from ..models.order_rule_model import OrderRuleModel
+        cu = None
+        try:
+            from plugins.currency.models.currency_model import CurrencyModel
+            cu = CurrencyModel.get_current_or_main_currency_with_controller(self)
+        except:
+            pass
         freight_data = []
         for item in FreightModel.all_enable().fetch(1000):
+            start_amount = item.start_amount
+            end_amount = item.end_amount
+            freight_amount = item.freight_amount
+            if cu:
+                start_amount = cu.calc(start_amount)
+                end_amount = cu.calc(end_amount)
+                freight_amount = cu.calc(freight_amount)
             freight_data.append({
                 'key': self.util.encode_key(item),
                 'freight_type': self.util.encode_key(item.freight_type),
-                'start_amount': item.start_amount,
-                'end_amount': item.end_amount,
-                'freight_amount': item.freight_amount,
+                'start_amount': start_amount,
+                'end_amount': end_amount,
+                'freight_amount': freight_amount,
             })
         freight_type_data = []
         for item in FreightTypeModel.all_enable().fetch(1000):
