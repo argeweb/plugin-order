@@ -34,6 +34,7 @@ class OrderItemModel(BasicModel):
     sku_full_name = Fields.StringProperty(verbose_name=u'產品最小庫存名稱')
     spec_full_name = Fields.StringProperty(verbose_name=u'完整規格名稱')
     price = Fields.FloatProperty(verbose_name=u'銷售價格', default=-1)
+    cost = Fields.FloatProperty(verbose_name=u'成本', default=0.0)
     quantity = Fields.IntegerProperty(verbose_name=u'數量', default=0)
     quantity_has_count = Fields.IntegerProperty(verbose_name=u'已計入庫存的數量', default=0)
     can_add_to_order = Fields.BooleanProperty(verbose_name=u'加至訂單中', default=False)
@@ -56,17 +57,18 @@ class OrderItemModel(BasicModel):
         return cls.query(cls.order==order.key).order(-cls.sort)
 
     @classmethod
-    def get(cls, user, sku, order_type_value=0):
-        return cls.query(cls.sku==sku.key, cls.user==user.key, cls.order_type_value==order_type_value).get()
+    def get(cls, order, sku, order_type_value=0):
+        return cls.query(cls.sku==sku.key, cls.order==order.key, cls.order_type_value==order_type_value).get()
 
     @classmethod
-    def get_or_create(cls, user, sku, quantity=0, order_type_value=0):
-        product = sku.product.get()
-        item = cls.query(cls.sku==sku.key, cls.user==user.key, cls.order_type_value==order_type_value).get()
+    def get_or_create(cls, user, sku, order, quantity=0, order_type_value=0):
+        product = sku.product_object.get()
+        item = cls.get(order, sku, order_type_value)
         if item is None:
             item = cls()
             item.sku = sku.key
             item.user = user.key
+            item.order = order.key
             item.order_type_value = order_type_value
             if order_type_value == 0:
                 item.order_type = u'現貨'
@@ -74,6 +76,7 @@ class OrderItemModel(BasicModel):
                 item.order_type = u'預購'
         item._sku = sku
         item._product = product
+        item._order = order
         item.title = product.title
         item.product_no = product.product_no
         item.product_image = product.image
@@ -93,41 +96,62 @@ class OrderItemModel(BasicModel):
 
     @classmethod
     def before_delete(cls, key):
-        item = key.get()
-        if item.order_type_value == 0:
-            if item.quantity > 0:
-                sku = item.sku.get()
-                sku.estimate = sku.estimate - item.quantity_has_count
-                sku.put()
+        try:
+            item = key.get()
+            if item.order_type_value == 0:
+                if item.quantity > 0:
+                    sku = item.sku.get()
+                    sku.estimate = sku.estimate - item.quantity_has_count
+                    sku.put()
+        except:
+            pass
 
     @classmethod
-    def create_from_shopping_cart_item(cls, shopping_cart_item):
+    def create_from_shopping_cart_item(cls, shopping_cart_item, order):
         item = cls()
         for p in shopping_cart_item._properties:
             setattr(item, p, getattr(shopping_cart_item, p))
+        item.order = order.key
+        item.put()
         return item
 
+    def get_can_order_quantity(self):
+        if self.order_type == 1:
+            return 9999999
+        sku = self.sku_instance
+        return sku.quantity - sku.estimate + int(self.quantity_has_count)
+
+    @property
+    def sku_instance(self):
+        if not hasattr(self, '_sku'):
+            self._sku = self.sku.get()
+        return self._sku
+
+    @property
+    def product_instance(self):
+        if not hasattr(self, '_product'):
+            self._product = self.sku_instance.product_object.get()
+        return self._product
+
     def change_quantity(self, quantity):
-        if hasattr(self, '_sku'):
-            sku = self._sku
-        else:
-            sku = self.sku.get()
-        if hasattr(self, '_product'):
-            product = self._product
-        else:
-            product = sku.product.get()
+        sku = self.sku_instance
+        product = self.product_instance
         if sku.use_price:
             self.price = sku.price
         else:
             self.price = product.price
+        if sku.use_cost:
+            self.cost = sku.cost
+        else:
+            self.cost = product.cost
+
         if self.order_type_value == 0:
-            namespace = product._key._Key__namespace
-            config = ProductConfigModel.find_by_name(namespace)
+            config = ProductConfigModel.find_by_product(product)
             if config.stock_recover:
                 self.expired_time = time() + config.stock_recover_time
             else:
                 self.expired_time = time() + 525600
-            can_use_quantity = sku.quantity - sku.estimate + int(self.quantity_has_count)
+            can_use_quantity = self.get_can_order_quantity()
             old_quantity_has_count = self.quantity_has_count
             if can_use_quantity >= quantity and product.can_order:
                 self.can_add_to_order = True
@@ -137,6 +161,7 @@ class OrderItemModel(BasicModel):
                 self.can_add_to_order = False
                 self.quantity = 0
                 self.quantity_has_count = 0
+            self._can_use_quantity = can_use_quantity
             sku.estimate = sku.estimate - abs(old_quantity_has_count) + abs(self.quantity)
             sku.put()
         else:

@@ -1,40 +1,220 @@
-{% extends "backend/list.html" %}
-{%- block layout_header -%}
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>訂購項目
-                        <small class="m-l-sm">{{ order_record.order_no }}</small>
-                    </h5>
+{% extends "backend/form.html" %}
+{% block layout_header %}{% endblock %}
+{% block layout_content %}
+    <div class="sidebar-container" style="width: auto; height: 100%;" id="app">
+        <ul class="nav nav-tabs navs-3">
+            <li class="active"><a data-toggle="tab" href="#tab-order-item" aria-expanded="true">訂購項目</a></li>
+            <li class=""><a data-toggle="tab" href="#tab-insert-item" aria-expanded="false">新增項目</a></li>
+            <li class=""><a data-toggle="tab" href="#tab-other" aria-expanded="false">相關操作</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <div id="tab-order-item" class="tab-pane active">
+            <form method="POST" action="{{ uri('admin:order:order_item:change_quantity') }}"
+                  data-return-encoding="{{ scaffolding.form_return_encoding }}"
+                  enctype="{{ scaffolding.form_encoding }}" accept-charset="UTF-8"
+                   role="form" id="change-order-item">
+                <input type="hidden" name="order_key" value="{{ print_key(order_record) }}" />
+                <input type="hidden" name="length" :value="order_items.length" />
+                <div class="sidebar-title">
+                    <h3>訂單: {{ order_record.order_no }}</h3>
+                    <small>您可以透過將項目數量改為 0 來刪除一個項目，
+                        數量更改後 訂單的 小計金額、總金額會重新計算，
+                        但 運費 並不會重新計算，請再次確認 運費 的正確性。</small>
+                    <div style="height: 22px;margin: 6px 0 0 0;">
+                        <a id="btn-change-order-item" class="btn brand-bg-color pull-right" style="color: #fff;">儲存修改</a>
+                    </div>
+                </div>
+                <ul class="sidebar-list">
+                    <li style="border-bottom: none;" v-for="(item, index) in order_items">
+                        <a :href="item.url" target="aside_iframe">
+                            <div class="small pull-right m-t-xs moment-vue-from-now" :data-vue-from-now="item.modified"></div>
+                            <h4 :id="'spec-name-' + item.key">{{item.order_type}} {{item.title}}</h4>
+                            <div class="small text-muted m-t-xs">
+                                規格： <span style="width:230px; display: inline-block;">{{item.spec_full_name}}</span><br>
+                                價格： <span style="width: 30px; display: inline-block;">{{item.price}}</span><br>
+                                <a v-if="item.stock_url != ''" :href="item.stock_url" class="btn brand-bg-color pull-right" style="color: #fff;">管理庫存</a>
+                                庫存： <span style="width:230px; display: inline-block;">{{item.sku_quantity}}　　預估： {{item.sku_estimate}}　　預購： {{item.sku_pre_order_quantity}}</span><br>
+                                數量： <span style="width: 30px; display: inline-block;">{{item.quantity}}</span><br>
+                                <input type="hidden" :name="'order_item_key_' + index" :value="item.key">
+                                <input type="number" :name="'order_item_quantity_' + index" :id="'order-item-' + item.key"
+                                       class="form-control field-control field-type-string-field" min="0" :max="getMaxQuantity(item)"
+                                       :value="item.quantity">
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </form>
+            </div>
+            <div id="tab-insert-item" class="tab-pane">
+                <form method="POST" action="{{ uri('admin:order:order_item:insert_with_sku') }}"
+                      data-return-encoding="{{ scaffolding.form_return_encoding }}"
+                      enctype="{{ scaffolding.form_encoding }}" accept-charset="UTF-8"
+                      role="form" id="insert-order-item">
+                <input type="hidden" name="order_key" value="{{ print_key(order_record) }}" />
+                <div class="sidebar-title">
+                    <h3>產品</h3>
+                    <multiselect label="label" @search-change="asyncFindProduct" :show-labels="false" @select="productSelect"
+                                 track-by="data" :options="products" :allow-empty="false" placeholder="請搜尋並選擇產品"></multiselect>
+                    <h3>規格</h3>
+                    <multiselect label="spec_full_name" @select="specSelect" :show-labels="false"
+                                 track-by="__key__" :options="specs" :allow-empty="false" placeholder="請選擇規格"></multiselect>
+                    <h3>類型</h3>
+                    <multiselect :options="order_type_options" :show-labels="false" placeholder="請選擇訂購類型" label="label" track-by="name" @select="typeSelect"></multiselect>
+                    <h3>數量 <span v-if="max_quantity > 0">(可用數量{{max_quantity}})</span></h3>
+                    <input type="hidden" name="sku_key" v-model="selected_spec"/>
+                    <input type="hidden" name="order_type" v-model="selected_order_type"/>
+                    <input type="number" name="quantity" class="form-control field-control" :max="max_quantity" />
+                    <div style="height: 22px;margin: 6px 0 0 0;">
+                        <a id="btn-insert-order-item" class="btn brand-bg-color pull-right" style="color: #fff;">新增項目</a>
+                    </div>
+                </div>
+                <br style="clear: both;">
+                </form>
+            </div>
+            <div id="tab-other" class="tab-pane">
+                <div class="sidebar-title">
+                    {% if uri_exists_with_permission("admin:product_stock:stock:stock_out_with_order", item=order_record, order_type='all') %}
+                        <h4>訂單出庫</h4>
+                        <small>您可以透過將項目數量改為 0 來刪除一個項目，
+                            數量更改後 訂單的 小計金額、總金額會重新計算，
+                            但 運費 並不會重新計算，請再次確認 運費 的正確性。</small>
+                        <a href="{{ uri("admin:product_stock:stock_request:create_with_order", order_key=print_key(order_record), order_type='all') }}" class="btn brand-bg-color"
+                           style="color: #fff; width: 100%;margin: 10px 0 20px 0">全部出庫</a>
+
+                        <small>您可以透過將項目數量改為 0 來刪除一個項目，
+                            數量更改後 訂單的 小計金額、總金額會重新計算，
+                            但 運費 並不會重新計算，請再次確認 運費 的正確性。</small>
+                        <a href="{{ uri("admin:product_stock:stock_request:create_with_order", order_key=print_key(order_record), order_type='stock_only') }}" class="btn brand-bg-color"
+                           style="color: #fff; width: 100%;margin: 10px 0 20px 0">預購出庫</a>
+
+                        <small>您可以透過將項目數量改為 0 來刪除一個項目，
+                            數量更改後 訂單的 小計金額、總金額會重新計算，
+                            但 運費 並不會重新計算，請再次確認 運費 的正確性。</small>
+                        <a href="{{ uri("admin:product_stock:stock_request:create_with_order", order_key=print_key(order_record), order_type='pre_order_only') }}" class="btn brand-bg-color"
+                           style="color: #fff; width: 100%;margin: 10px 0 20px 0">預購出庫</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 {% endblock %}
-{% block layout_content %}
-    <div class="row">
-        {%- set list = context[scaffolding.plural] -%}
-        {% for item in list %}
-        <div class="col-xs-12">
-            <div class="contact-box">
-                <div class="col-xs-4">
-                    <div class="text-center">
-                        <img alt="image" class="img-circle m-t-xs img-responsive" src="{{ item.product_image }}">
-                        <div class="m-t-xs font-bold">{{ item.order_type }}</div>
-                    </div>
-                </div>
-                <div class="col-xs-8">
-                    <h3><strong>{{ item.title }}</strong></h3>
-                    <p><i class="fa fa-map-marker"></i> {{ item.spec_full_name }}</p>
-                    <div>
-                        <strong>數量: {{ item.quantity }}</strong><br>
-                        價格: {{ item.price }}<br>
-                    </div>
-                </div>
-                <div class="clearfix"></div>
-            </div>
-        </div>
-        {% endfor -%}
-    </div>
+
+{% block form_actions %}{% endblock %}
+{% block layout_buttons %}{% endblock %}
+{% block layout_scripts %}
+<script type="text/javascript">
+    (function(page){
+        var p = methods.sortByKey([{% for item in context[scaffolding.plural] %}{
+            {% set sku = item.sku.get() %}
+            {% set product = sku.product_object.get() %}
+            "__key__": "{{ print_key(item) }}",
+            "sku": "{{ sku.name }}",
+            "sku_quantity": "{{ sku.quantity }}",
+            "sku_estimate": "{{ sku.estimate }}",
+            "sku_pre_order_quantity": "{{ sku.pre_order_quantity }}",
+            "product_no": "{{ item.product_no }}",
+            "product_image": "{{ item.product_image }}",
+            "order_type": "{{ item.order_type }}",
+            "order_type_value": "{{ item.order_type_value }}",
+            "title": "{{ item.title }}",
+            "spec_full_name": "{{ item.spec_full_name }}",
+            "quantity": {{ item.quantity }},
+            "quantity_has_count": {{ item.quantity_has_count }},
+            "price": {{ item.price }},
+            "stock_url": "{% if uri_exists_with_permission("admin:product_stock:stock:list_for_side_panel", target=print_key(product)) %}{{ uri("admin:product_stock:stock:list_for_side_panel", target=print_key(product)) }}{% endif %}",
+            "modified": "{{ print_value(item.modified) }}"
+        },{% endfor %}], "spec_full_name");
+        page['app'] = new Vue({
+            el: '#app',
+            components: {
+                Multiselect: window.VueMultiselect.default
+            },
+            data: {
+                product_val_for_search: "",
+                order_items: p,
+                products: [],
+                selected_product: [],
+                specs: [],
+                selected_spec: [],
+                can_insert_quantity: 0,
+                selected_order_type: [],
+                order_type_options: [
+                    {name: '0', label: '現貨'},
+                    {name: '1', label: '預購'}
+                ]
+            },
+            computed: {
+                max_quantity: function () {
+                    if (this.selected_order_type == "0"){
+                        return this.can_insert_quantity;
+                    }else{
+                        return 999;
+                    }
+                }
+            },
+            methods: {
+                getMaxQuantity: function(item){
+                    if (item.order_type_value == "0")
+                        return item.sku_quantity - item.sku_estimate + item.quantity_has_count;
+                    return 999;
+                },
+                asyncFindProduct: function(query) {
+                    if (query != "" && query.length >= 2){
+                        json("/admin/backend_ui_material/backend_ui_material/model_suggestions?model=ProductModel",
+                                "query=" + query, function(result){
+                                    page["app"].products = result.suggestions
+                                }
+                        )
+                    }
+                },
+                productSelect: function(selectedOption, id){
+                    json("{{ uri('admin:product_stock:stock:get_sku_detail') }}", "product=" + selectedOption.data, function(result){
+                        page["app"].specs = result.data
+                    })
+                },
+                specSelect: function(selectedOption, id){
+                    this.selected_spec = selectedOption.__key__;
+                    for(let j=0;j<page['app'].specs.length;j++){
+                        if (page['app'].specs[j].__key__ == this.selected_spec){
+                            page['app'].can_insert_quantity = page['app'].specs[j].quantity;
+                        }
+                    }
+                },
+                typeSelect: function(selectedOption, id){
+                    this.selected_order_type = selectedOption.name;
+                }
+            }
+        });
+        $("#btn-change-order-item").click(function(){
+            saveForm("#change-order-item", function(data, message){
+                if (data.result === "success"){
+                    message.snackbar(message.parseScaffoldMessage(data), 4000);
+                    content_area.reload(true);
+                }else{
+                    message.alert(message.parseScaffoldMessage(data), 4000);
+                }
+            });
+        });
+        $("#btn-insert-order-item").click(function(){
+            saveForm("#insert-order-item", function(data, message){
+                if (data.result === "success"){
+                    message.snackbar(message.parseScaffoldMessage(data), 4000);
+                    content_area.reload(true);
+                }else{
+                    message.alert(message.parseScaffoldMessage(data), 4000);
+                }
+            });
+        });
+        $("#sku_key").change(function(){
+            let is_find = -1;
+            let val = $(this).val();
+            for(let j=0;j<page['app'].product_spec_items.length;j++){
+                if (page['app'].product_spec_items[j].__key__ == item.__key__){
+                    page['app'].can_insert_quantity = page['app'].product_spec_items[j].quantity;
+                }
+            }
+        });
+    })(page);
+</script>
 {% endblock %}

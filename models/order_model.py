@@ -18,7 +18,7 @@ from order_status_model import OrderStatusModel, order_status_name_index
 
 class OrderModel(BasicModel):
     class Meta:
-        tab_pages = [u'物流', u'金流']
+        tab_pages = [u'物流', u'金流', u'備註', u'成本']
 
     name = Fields.StringProperty(verbose_name=u'識別名稱')
 
@@ -47,7 +47,6 @@ class OrderModel(BasicModel):
     freight_type = Fields.SearchingHelperProperty(verbose_name=u'寄送方式', target='freight_type_object', target_field_name='title')
     freight_status_object = Fields.CategoryProperty(verbose_name=u'寄送狀態', kind=FreightStatusModel)
     freight_status = Fields.SearchingHelperProperty(verbose_name=u'寄送狀態', target='freight_status_object', target_field_name='title')
-    message = Fields.StringProperty(verbose_name=u'訂單留言')
 
     payment_type_object = Fields.CategoryProperty(verbose_name=u'付款方式', kind=PaymentTypeModel, tab_page=1)
     payment_type = Fields.SearchingHelperProperty(verbose_name=u'付款方式', target='payment_type_object', target_field_name='title', tab_page=1)
@@ -69,6 +68,19 @@ class OrderModel(BasicModel):
     currency_total_amount = Fields.FloatProperty(verbose_name=u'總金額(貨幣)', tab_page=1)
     currency_shopping_cash = Fields.FloatProperty(verbose_name=u'使用的購物金(貨幣)', tab_page=1)
     currency_need_pay_amount = Fields.FloatProperty(verbose_name=u'應付金額(貨幣)', tab_page=1)
+
+    cost_for_items = Fields.FloatProperty(verbose_name=u'成本(項目)', default=0.0, tab_page=3)
+    cost_for_freight = Fields.FloatProperty(verbose_name=u'成本(運費)', default=0.0, tab_page=3)
+    cost_for_other = Fields.FloatProperty(verbose_name=u'成本(其它)', default=0.0, tab_page=3)
+    cost = Fields.FloatProperty(verbose_name=u'成本', default=0.0, tab_page=3)
+    profit = Fields.FloatProperty(verbose_name=u'利潤', default=0.0, tab_page=3)
+    cost_remark = Fields.TextProperty(verbose_name=u'成本備註', tab_page=3)
+
+    message = Fields.TextProperty(verbose_name=u'訂單留言', tab_page=2)
+    remark_backend = Fields.TextProperty(verbose_name=u'後台備註', tab_page=2)
+    remark_amount = Fields.TextProperty(verbose_name=u'對帳備註', tab_page=2)
+    remark_freight = Fields.TextProperty(verbose_name=u'寄送備註', tab_page=2)
+    remark_email = Fields.TextProperty(verbose_name=u'郵件備註', tab_page=2)
 
     @classmethod
     def all(cls, user=None, *args, **kwargs):
@@ -104,27 +116,22 @@ class OrderModel(BasicModel):
         # 訂購項目
         items = []
         subtotal_amount = 0.0
+        subtotal_cost = 0.0
         from plugins.shopping_cart.models.shopping_cart_item_model import ShoppingCartItemModel
         from ..models.order_item_model import OrderItemModel
         for item in ShoppingCartItemModel.all_with_user(application_user).fetch():
             if item.can_add_to_order:
-                order_item = OrderItemModel.create_from_shopping_cart_item(item)
-                order_item.order = order.key
-                order_item.put()
+                order_item = OrderItemModel.create_from_shopping_cart_item(item, order)
                 items.append(order_item)
                 subtotal_amount += order_item.quantity * order_item.price
+                subtotal_cost += order_item.quantity * order_item.cost
                 item.quantity_has_count = 0
                 item.key.delete()
 
         # 金額計算
-        order.subtotal_amount = subtotal_amount
-        order.set_freight_amount(subtotal_amount, params.get_float('freight_amount'))
-        order.total_amount = subtotal_amount + order.freight_amount
-        order.need_pay_amount = float(order.total_amount) - float(order.shopping_cash)
-
-        if order.shopping_cash >= order.total_amount:
-            order.shopping_cash = order.total_amount
-            order.need_pay_amount = 0
+        order.set_freight_amount(subtotal_amount)
+        order.calc_total_amount(subtotal_amount)
+        order.calc_total_cost(subtotal_cost)
 
         order_status = 'new_order'
         freight_status = 'unconfirmed'
@@ -141,22 +148,26 @@ class OrderModel(BasicModel):
         order.set_payment_status(payment_status)
         order.put()
         return order, items
-        
+
     def gen_order_no(self):
         from argeweb.core.time_util import localize
         from datetime import datetime
         n = localize(datetime.today()).strftime('%Y%m%d %H%M%S').split(' ')
         return '%s-%s-%s' % (n[0], self.name[0:4], n[1])
 
-    def set_currency(self, currency):
-        if currency:
-            self.currency_name = currency.name
-            self.currency_title = currency.title
-            self.currency_exchange_rate = currency.exchange_rate
-        else:
-            self.currency_name = 'main'
-            self.currency_title = u'基準貨幣'
-            self.currency_exchange_rate = 1.0
+    def calc_total_cost(self, subtotal_cost):
+        self.cost_for_items = subtotal_cost
+        self.cost = self.cost_for_items + self.cost_for_freight + self.cost_for_other
+        self.profit = self.total_amount - self.cost
+
+    def calc_total_amount(self, subtotal_amount):
+        self.subtotal_amount = subtotal_amount
+        self.total_amount = subtotal_amount + self.freight_amount
+        self.need_pay_amount = float(self.total_amount) - float(self.shopping_cash)
+
+        if self.shopping_cash >= self.total_amount:
+            self.shopping_cash = self.total_amount
+            self.need_pay_amount = 0
 
     def set_order_status(self, name):
         self.status_object = OrderStatusModel.find_by_name(name).key
@@ -167,7 +178,7 @@ class OrderModel(BasicModel):
     def set_payment_status(self, name):
         self.payment_status_object = PaymentStatusModel.find_by_name(name).key
 
-    def set_freight_amount(self, subtotal_amount, check_amount):
+    def set_freight_amount(self, subtotal_amount):
         from ..models.freight_model import FreightModel, FreightTypeModel
         is_find = False
         amount = 0.0
@@ -202,9 +213,27 @@ class OrderModel(BasicModel):
         self.recipient_store_name = params.get_string('store_name')
         self.message = params.get_string('message')
 
-    def calc_currency_amount(self, params):
-        self.currency_subtotal_amount = params.get_float('currency_subtotal_amount')
-        self.currency_freight_amount = params.get_float('currency_freight_amount')
+    def set_currency(self, currency):
+        if currency:
+            self.currency_name = currency.name
+            self.currency_title = currency.title
+            self.currency_exchange_rate = currency.exchange_rate
+        else:
+            self.currency_name = 'main'
+            self.currency_title = u'基準貨幣'
+            self.currency_exchange_rate = 1.0
+
+    def calc_currency_amount(self, params=None):
+        if params is not None:
+            self.currency_subtotal_amount = params.get_float('currency_subtotal_amount')
+            self.currency_freight_amount = params.get_float('currency_freight_amount')
+        else:
+            try:
+                from plugins.currency.models.currency_model import exchange
+                self.currency_subtotal_amount = exchange(self.currency_exchange_rate, self.subtotal_amount)
+                self.currency_freight_amount = exchange(self.currency_exchange_rate, self.freight_amount)
+            except:
+                return
         self.currency_total_amount = self.currency_subtotal_amount + self.currency_freight_amount
         self.currency_need_pay_amount = self.currency_total_amount - self.currency_shopping_cash
 
@@ -221,9 +250,13 @@ class OrderModel(BasicModel):
         if self.order_no is u'':
             self.order_no = self.gen_order_no()
 
+    @classmethod
     def before_delete(cls, key):
-        from ..models.order_item_model import OrderItemModel
-        items = OrderItemModel.all_with_order(key)
-        for item in items:
-            item.order_be_delete = True
-            item.put()
+        try:
+            from ..models.order_item_model import OrderItemModel
+            items = OrderItemModel.all_with_order(key)
+            for item in items:
+                item.order_be_delete = True
+                item.put()
+        except:
+            pass

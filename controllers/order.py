@@ -34,8 +34,7 @@ class Order(Controller):
             def query_factory_with_status(controller):
                 return controller.meta.Model.all_with_status(controller.status)
 
-            status = self.params.get_string('status', '')
-            setattr(self, 'status', status)
+            setattr(self, 'status', self.params.get_string('status', ''))
             self.scaffold.query_factory = query_factory_with_status
             list_field = {
                 'new_order': ['order_no', 'created', 'payment_type', 'payment_status', 'currency_title', 'currency_need_pay_amount'],
@@ -46,8 +45,8 @@ class Order(Controller):
                 # 'abnormal_flow': [],
                 # 'order_cancel': [],
             }
-            if status in list_field:
-                self.scaffold.display_in_list = list_field[status]
+            if self.status in list_field:
+                self.scaffold.display_in_list = list_field[self.status]
         return scaffold.list(self)
 
     def admin_view(self, key):
