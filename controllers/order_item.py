@@ -80,8 +80,18 @@ class OrderItem(Controller):
         sku = self.params.get_ndb_record('sku_key')
         quantity = self.params.get_integer('quantity')
         order_type = self.params.get_integer('order_type')
-        user = order.user.get()
-        item = self.meta.Model.get_or_create(user, sku, order, quantity, order_type)
+        try:
+            user = order.user.get()
+        except:
+            self.context['message'] = u'訂單缺少了訂購者，請先設置該欄位'
+            self.context['data'] = {'result': 'failure'}
+            return
+        try:
+            item = self.meta.Model.get_or_create(user, sku, order, quantity, order_type)
+        except:
+            self.context['message'] = u'請先選擇產品及規格'
+            self.context['data'] = {'result': 'failure'}
+            return
         self.context['message'] = u'完成'
         result = 'success'
         if order_type == 0:

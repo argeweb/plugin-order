@@ -20,15 +20,19 @@ class OrderModel(BasicModel):
     class Meta:
         tab_pages = [u'物流', u'金流', u'備註', u'成本']
 
+    order_no = Fields.StringProperty(verbose_name=u'訂單編號', default=u'')
     name = Fields.StringProperty(verbose_name=u'識別名稱')
 
     status_object = Fields.CategoryProperty(verbose_name=u'訂單狀態', kind=OrderStatusModel)
     status = Fields.SearchingHelperProperty(verbose_name=u'訂單狀態', target='status_object', target_field_name='title')
-    sku_link = Fields.SidePanelProperty(verbose_name=u'訂購項目', text=u'點擊此處查看 訂購項目',
-                                        uri='admin:order:order_item:list_for_side_panel')
 
     user = Fields.KeyProperty(verbose_name=u'使用者', kind=ApplicationUserModel)
-    order_no = Fields.StringProperty(verbose_name=u'訂單編號', default=u'')
+
+    freight_type_object = Fields.CategoryProperty(verbose_name=u'寄送方式', kind=FreightTypeModel)
+    freight_type = Fields.SearchingHelperProperty(verbose_name=u'寄送方式', target='freight_type_object', target_field_name='title')
+    freight_status_object = Fields.CategoryProperty(verbose_name=u'寄送狀態', kind=FreightStatusModel)
+    freight_status = Fields.SearchingHelperProperty(verbose_name=u'寄送狀態', target='freight_status_object', target_field_name='title')
+
     purchaser_name = Fields.StringProperty(verbose_name=u'購買人姓名', default=u'')
     purchaser_email = Fields.StringProperty(verbose_name=u'購買人 E-Mail', default=u'')
     recipient_name = Fields.StringProperty(verbose_name=u'收件人姓名', default=u'')
@@ -42,32 +46,29 @@ class OrderModel(BasicModel):
     recipient_address_detail = Fields.StringProperty(verbose_name=u'收件地址 ', default=u'')
     recipient_store_number = Fields.StringProperty(verbose_name=u'超商取貨店號 ', default=u'')
     recipient_store_name = Fields.StringProperty(verbose_name=u'超商取貨店名', default=u'')
-
-    freight_type_object = Fields.CategoryProperty(verbose_name=u'寄送方式', kind=FreightTypeModel)
-    freight_type = Fields.SearchingHelperProperty(verbose_name=u'寄送方式', target='freight_type_object', target_field_name='title')
-    freight_status_object = Fields.CategoryProperty(verbose_name=u'寄送狀態', kind=FreightStatusModel)
-    freight_status = Fields.SearchingHelperProperty(verbose_name=u'寄送狀態', target='freight_status_object', target_field_name='title')
+    sku_link = Fields.SidePanelProperty(verbose_name=u'訂購項目', text=u'點擊此處查看 訂購項目', auto_open=True,
+                                        uri='admin:order:order_item:list_for_side_panel')
 
     payment_type_object = Fields.CategoryProperty(verbose_name=u'付款方式', kind=PaymentTypeModel, tab_page=1)
     payment_type = Fields.SearchingHelperProperty(verbose_name=u'付款方式', target='payment_type_object', target_field_name='title', tab_page=1)
     payment_status_object = Fields.CategoryProperty(verbose_name=u'付款狀態', kind=PaymentStatusModel, tab_page=1)
     payment_status = Fields.SearchingHelperProperty(verbose_name=u'付款狀態', target='payment_status_object', target_field_name='title', tab_page=1)
 
-    subtotal_amount = Fields.FloatProperty(verbose_name=u'小計金額', tab_page=1)
-    freight_amount = Fields.FloatProperty(verbose_name=u'運費', tab_page=1)
-    total_amount = Fields.FloatProperty(verbose_name=u'總金額', tab_page=1)
-    shopping_cash = Fields.FloatProperty(verbose_name=u'使用的購物金', tab_page=1)
-    need_pay_amount = Fields.FloatProperty(verbose_name=u'應付金額', tab_page=1)
+    subtotal_amount = Fields.FloatProperty(verbose_name=u'小計金額', tab_page=1, default=0.0)
+    freight_amount = Fields.FloatProperty(verbose_name=u'運費', tab_page=1, default=0.0)
+    total_amount = Fields.FloatProperty(verbose_name=u'總金額', tab_page=1, default=0.0)
+    shopping_cash = Fields.FloatProperty(verbose_name=u'使用的購物金', tab_page=1, default=0.0)
+    need_pay_amount = Fields.FloatProperty(verbose_name=u'應付金額', tab_page=1, default=0.0)
 
     currency_name = Fields.StringProperty(verbose_name=u'使用貨幣', tab_page=1)
     currency_title = Fields.StringProperty(verbose_name=u'貨幣名稱', tab_page=1)
-    currency_exchange_rate = Fields.FloatProperty(verbose_name=u'當時匯率', tab_page=1)
+    currency_exchange_rate = Fields.FloatProperty(verbose_name=u'當時匯率', tab_page=1, default=1.0)
 
-    currency_subtotal_amount = Fields.FloatProperty(verbose_name=u'小計金額(貨幣)', tab_page=1)
-    currency_freight_amount = Fields.FloatProperty(verbose_name=u'運費(貨幣)', tab_page=1)
-    currency_total_amount = Fields.FloatProperty(verbose_name=u'總金額(貨幣)', tab_page=1)
-    currency_shopping_cash = Fields.FloatProperty(verbose_name=u'使用的購物金(貨幣)', tab_page=1)
-    currency_need_pay_amount = Fields.FloatProperty(verbose_name=u'應付金額(貨幣)', tab_page=1)
+    currency_subtotal_amount = Fields.FloatProperty(verbose_name=u'小計金額(貨幣)', tab_page=1, default=0.0)
+    currency_freight_amount = Fields.FloatProperty(verbose_name=u'運費(貨幣)', tab_page=1, default=0.0)
+    currency_total_amount = Fields.FloatProperty(verbose_name=u'總金額(貨幣)', tab_page=1, default=0.0)
+    currency_shopping_cash = Fields.FloatProperty(verbose_name=u'使用的購物金(貨幣)', tab_page=1, default=0.0)
+    currency_need_pay_amount = Fields.FloatProperty(verbose_name=u'應付金額(貨幣)', tab_page=1, default=0.0)
 
     cost_for_items = Fields.FloatProperty(verbose_name=u'成本(項目)', default=0.0, tab_page=3)
     cost_for_freight = Fields.FloatProperty(verbose_name=u'成本(運費)', default=0.0, tab_page=3)
@@ -81,6 +82,7 @@ class OrderModel(BasicModel):
     remark_amount = Fields.TextProperty(verbose_name=u'對帳備註', tab_page=2)
     remark_freight = Fields.TextProperty(verbose_name=u'寄送備註', tab_page=2)
     remark_email = Fields.TextProperty(verbose_name=u'郵件備註', tab_page=2)
+    need_reset_stock_quantity = Fields.BooleanProperty(verbose_name=u'需修正庫存數量', default=False, tab_page=9)
 
     @classmethod
     def all(cls, user=None, *args, **kwargs):
@@ -244,6 +246,10 @@ class OrderModel(BasicModel):
             self.shopping_cash = session['shop_point_use']
         if 'shop_point_use_in_currency' in session:
             self.currency_shopping_cash = session['shop_point_use_in_currency']
+    @property
+    def items(self):
+        from order_item_model import OrderItemModel
+        return OrderItemModel.all_with_order(self)
 
     def before_put(self):
         super(OrderModel, self).before_put()

@@ -16,16 +16,11 @@ from time import time
 
 
 class OrderItemModel(BasicModel):
-    class Meta:
-        label_name = {
-            'title_lang_zhtw': u'標題',
-            'content_lang_zhtw': u'內容',
-        }
     name = Fields.StringProperty(verbose_name=u'識別名稱')
     sku = Fields.KeyProperty(verbose_name=u'最小庫存單位', kind=StockKeepingUnitModel)
     user = Fields.KeyProperty(verbose_name=u'所屬使用者', kind=ApplicationUserModel)
     order = Fields.KeyProperty(verbose_name=u'所屬訂單', kind=OrderModel)
-    order_be_delete = Fields.BooleanProperty(verbose_name=u'狀態是否被刪除', default=False)
+    order_be_delete = Fields.BooleanProperty(verbose_name=u'訂單是否被刪除', default=False)
 
     title = Fields.StringProperty(verbose_name=u'產品名稱')
     product_no = Fields.StringProperty(verbose_name=u'產品編號')
@@ -101,7 +96,7 @@ class OrderItemModel(BasicModel):
             if item.order_type_value == 0:
                 if item.quantity > 0:
                     sku = item.sku.get()
-                    sku.estimate = sku.estimate - item.quantity_has_count
+                    sku.change_estimate_quantity(item.quantity_has_count)
                     sku.put()
         except:
             pass
@@ -118,8 +113,7 @@ class OrderItemModel(BasicModel):
     def get_can_order_quantity(self):
         if self.order_type == 1:
             return 9999999
-        sku = self.sku_instance
-        return sku.quantity - sku.estimate + int(self.quantity_has_count)
+        return self.sku_instance.quantity_can_be_used + int(self.quantity_has_count)
 
     @property
     def sku_instance(self):
@@ -151,7 +145,7 @@ class OrderItemModel(BasicModel):
                 self.expired_time = time() + config.stock_recover_time
             else:
                 self.expired_time = time() + 525600
-            can_use_quantity = self.get_can_order_quantity()
+            can_use_quantity = sku.quantity_can_be_used + int(self.quantity_has_count)
             old_quantity_has_count = self.quantity_has_count
             if can_use_quantity >= quantity and product.can_order:
                 self.can_add_to_order = True
@@ -162,7 +156,7 @@ class OrderItemModel(BasicModel):
                 self.quantity = 0
                 self.quantity_has_count = 0
             self._can_use_quantity = can_use_quantity
-            sku.estimate = sku.estimate - abs(old_quantity_has_count) + abs(self.quantity)
+            sku.change_estimate_quantity(sub_quantity=old_quantity_has_count, add_quantity=self.quantity)
             sku.put()
         else:
             if product.can_pre_order:
@@ -171,5 +165,5 @@ class OrderItemModel(BasicModel):
             else:
                 self.can_add_to_order = False
                 self.quantity = 0
-            sku.pre_order_quantity = sku.pre_order_quantity - abs(int(self.quantity_has_count)) + abs(self.quantity)
+            sku.change_pre_order_quantity(sub_quantity=int(self.quantity_has_count), add_quantity=self.quantity)
             sku.put()
