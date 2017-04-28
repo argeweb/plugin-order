@@ -19,7 +19,7 @@ class Order(Controller):
 
     class Scaffold:
         # display_in_list = ('title_lang_zhtw', 'name')
-        hidden_in_form = ['name', 'user', 'payment_type_title', 'freight_type_title',]
+        hidden_in_form = ['name', 'payment_type_title', 'freight_type_title',]
 
     @route
     @route_menu(list_name=u'backend', text=u'新訂單', sort=1301, group=u'銷售管理', parameter=u'status=new_order')

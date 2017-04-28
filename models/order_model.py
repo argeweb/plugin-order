@@ -125,6 +125,9 @@ class OrderModel(BasicModel):
             if item.can_add_to_order:
                 order_item = OrderItemModel.create_from_shopping_cart_item(item, order)
                 items.append(order_item)
+                order_item.sku_instance.change_estimate_quantity(sub_quantity=order_item.quantity)
+                order_item.sku_instance.change_in_order_quantity(add_quantity=order_item.quantity)
+                order_item.sku_instance.put()
                 subtotal_amount += order_item.quantity * order_item.price
                 subtotal_cost += order_item.quantity * order_item.cost
                 item.quantity_has_count = 0

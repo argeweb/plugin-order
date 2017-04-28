@@ -34,7 +34,10 @@
                                 <a v-if="item.stock_url != ''" target="aside_area" :href="item.stock_url" class="btn brand-bg-color pull-right" style="color: #fff;">管理庫存</a>
                                 規格： <span style="width:230px; display: inline-block;">{{item.spec_full_name}}</span><br>
                                 價格： <span style="width: 30px; display: inline-block;">{{item.price}}</span><br>
-                                庫存： <span style="width:230px; display: inline-block;">{{item.sku_quantity}}　　預估： {{item.sku_estimate}}　　預購： {{item.sku_pre_order_quantity}}</span><br>
+                                庫存： <span style="width:230px; display: inline-block;">{{item.sku_quantity}}
+                                　　預估： {{item.sku_estimate}}
+                                　　訂單： {{item.sku_in_order_quantity}}
+                                　　預購： {{item.sku_pre_order_quantity}}</span><br>
                                 數量： <span style="width: 30px; display: inline-block;">{{item.quantity}}</span><br>
                                 <input type="hidden" :name="'order_item_key_' + index" :value="item.key">
                                 <input type="number" :name="'order_item_quantity_' + index" :id="'order-item-' + item.key"
@@ -123,6 +126,7 @@
             "sku": "{{ sku.name }}",
             "sku_quantity": "{{ sku.quantity }}",
             "sku_estimate": "{{ sku.estimate }}",
+            "sku_in_order_quantity": "{{ sku.in_order_quantity }}",
             "sku_pre_order_quantity": "{{ sku.pre_order_quantity }}",
             "product_no": "{{ item.product_no }}",
             "product_image": "{{ item.product_image }}",

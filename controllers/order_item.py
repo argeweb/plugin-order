@@ -98,9 +98,10 @@ class OrderItem(Controller):
             if item._product.can_order is False:
                 result = 'failure'
                 self.context['message'] = u'此項目無法進行訂購'
-            if item.quantity != quantity:
+            q = item.get_can_order_quantity
+            if q < quantity:
                 result = 'failure'
-                self.context['message'] = u'數量不足，可訂購數量為 %s' % item.get_can_order_quantity()
+                self.context['message'] = u'數量不足，可訂購數量為 %s' % q
         if order_type == 1:
             if item._product.can_pre_order is False:
                 result = 'failure'
