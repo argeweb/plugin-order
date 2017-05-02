@@ -5,8 +5,8 @@
         <div class="pull-left m-r-md">
             <i class="material-icons mid-icon brand-text-color">shopping_cart</i>
         </div>
-        <h2>產品</h2>
-        <span>透過拖曳來變更分類的順序與其所屬的分類。</span>
+        <h2>訂單狀態設定</h2>
+        <span>管理與設定訂單狀態。</span>
         {% if last_record_date %}<span class="text-muted small pull-right visible-sm visible-md visible-lg">最後更新：<i class="icon">access_time</i> {{ print_value(last_record_date) }}</span>{% endif %}
     </div>
 </div>
@@ -21,14 +21,12 @@
                     <h5>訂單狀態</h5>
                 </div>
                 <div class="ibox-content">
-                    <p>我们提供基于H+的二次开发服务，具体费用请联系作者。</p>
-
-                    <p>同时，我们也提供以下服务：</p>
+                    <p>管理訂單的狀態。例如:</p>
                     <ol>
-                        <li>基于WordPress的网站建设和主题定制</li>
-                        <li>PSD转WordPress主题</li>
-                        <li>PSD转XHTML</li>
-                        <li>Html页面（CSS+XHTML+jQuery）制作</li>
+                        <li>備貨中</li>
+                        <li>已付款</li>
+                        <li>新訂單</li>
+                        <li>...</li>
                     </ol>
                     {% if uri_exists_with_permission(controller="order_status", action="list") %}<a href="{{ uri(controller="order_status", action="list") }}">設定</a>{% endif %}
                 </div>
@@ -41,14 +39,12 @@
                     <h5>寄送狀態</h5>
                 </div>
                 <div class="ibox-content">
-                    <p>我们提供基于H+的二次开发服务，具体费用请联系作者。</p>
-
-                    <p>同时，我们也提供以下服务：</p>
+                    <p>管理訂單的寄送狀態。例如:</p>
                     <ol>
-                        <li>基于WordPress的网站建设和主题定制</li>
-                        <li>PSD转WordPress主题</li>
-                        <li>PSD转XHTML</li>
-                        <li>Html页面（CSS+XHTML+jQuery）制作</li>
+                        <li>未出貨</li>
+                        <li>備貨中</li>
+                        <li>已寄達</li>
+                        <li>...</li>
                     </ol>
                     {% if uri_exists_with_permission(controller="freight_status", action="list") %}<a href="{{ uri(controller="freight_status", action="list") }}">設定</a>{% endif %}
                 </div>
@@ -61,14 +57,12 @@
                     <h5>付款狀態</h5>
                 </div>
                 <div class="ibox-content">
-                    <p>我们提供基于H+的二次开发服务，具体费用请联系作者。</p>
-
-                    <p>同时，我们也提供以下服务：</p>
+                    <p>管理訂單的付款狀態。例如:</p>
                     <ol>
-                        <li>基于WordPress的网站建设和主题定制</li>
-                        <li>PSD转WordPress主题</li>
-                        <li>PSD转XHTML</li>
-                        <li>Html页面（CSS+XHTML+jQuery）制作</li>
+                        <li>退款中</li>
+                        <li>已付款</li>
+                        <li>待付款</li>
+                        <li>...</li>
                     </ol>
                     {% if uri_exists_with_permission(controller="payment_status", action="list") %}<a href="{{ uri(controller="payment_status", action="list") }}">設定</a>{% endif %}
                 </div>

@@ -17,6 +17,6 @@ class OrderRule(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search)
 
-    @route_menu(list_name=u'backend', text=u'規則', sort=1331, group=u'銷售管理', need_hr=True)
+    @route_menu(list_name=u'backend', text=u'規則', sort=1324, group=u'產品銷售')
     def admin_list(self):
         return scaffold.list(self)

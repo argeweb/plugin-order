@@ -17,6 +17,6 @@ class FreightType(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search)
 
-    @route_menu(list_name=u'backend', text=u'寄送方式', sort=1321, group=u'銷售管理')
+    @route_menu(list_name=u'backend', text=u'寄送方式', sort=1322, group=u'產品銷售')
     def admin_list(self):
         return scaffold.list(self)

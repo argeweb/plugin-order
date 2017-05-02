@@ -24,7 +24,8 @@ class OrderModel(BasicModel):
     name = Fields.StringProperty(verbose_name=u'識別名稱')
 
     status_object = Fields.CategoryProperty(verbose_name=u'訂單狀態', kind=OrderStatusModel)
-    status = Fields.SearchingHelperProperty(verbose_name=u'訂單狀態', target='status_object', target_field_name='title')
+    status = Fields.SearchingHelperProperty(verbose_name=u'訂單狀態', target='status_object', target_field_name='name')
+    status_title = Fields.SearchingHelperProperty(verbose_name=u'訂單狀態', target='status_object', target_field_name='title')
 
     user = Fields.KeyProperty(verbose_name=u'使用者', kind=ApplicationUserModel)
 
@@ -75,14 +76,13 @@ class OrderModel(BasicModel):
     cost_for_other = Fields.FloatProperty(verbose_name=u'成本(其它)', default=0.0, tab_page=3)
     cost = Fields.FloatProperty(verbose_name=u'成本', default=0.0, tab_page=3)
     profit = Fields.FloatProperty(verbose_name=u'利潤', default=0.0, tab_page=3)
-    cost_remark = Fields.TextProperty(verbose_name=u'成本備註', tab_page=3)
+    cost_remark = Fields.TextProperty(verbose_name=u'成本備註', default=u'', tab_page=3)
 
-    message = Fields.TextProperty(verbose_name=u'訂單留言', tab_page=2)
-    remark_backend = Fields.TextProperty(verbose_name=u'後台備註', tab_page=2)
-    remark_amount = Fields.TextProperty(verbose_name=u'對帳備註', tab_page=2)
-    remark_freight = Fields.TextProperty(verbose_name=u'寄送備註', tab_page=2)
-    remark_email = Fields.TextProperty(verbose_name=u'郵件備註', tab_page=2)
-    need_reset_stock_quantity = Fields.BooleanProperty(verbose_name=u'需修正庫存數量', default=False, tab_page=9)
+    message = Fields.TextProperty(verbose_name=u'訂單留言', default=u'', tab_page=2)
+    remark_backend = Fields.TextProperty(verbose_name=u'後台備註', default=u'', tab_page=2)
+    remark_amount = Fields.TextProperty(verbose_name=u'對帳備註', default=u'', tab_page=2)
+    remark_freight = Fields.TextProperty(verbose_name=u'寄送備註', default=u'', tab_page=2)
+    remark_email = Fields.TextProperty(verbose_name=u'郵件備註', default=u'', tab_page=2)
 
     @classmethod
     def all(cls, user=None, *args, **kwargs):
