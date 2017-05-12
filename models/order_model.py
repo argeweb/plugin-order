@@ -9,9 +9,9 @@
 from argeweb import BasicModel
 from argeweb import Fields
 from plugins.application_user.models.application_user_model import ApplicationUserModel
-from payment_type_model import PaymentTypeModel
+from plugins.payment_middle_layer.models.payment_type_model import PaymentTypeModel
+from plugins.payment_middle_layer.models.payment_status_model import PaymentStatusModel
 from freight_type_model import FreightTypeModel
-from payment_status_model import PaymentStatusModel
 from freight_status_model import FreightStatusModel
 from order_status_model import OrderStatusModel, order_status_name_index
 

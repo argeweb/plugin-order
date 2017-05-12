@@ -64,7 +64,7 @@
                         <li>待付款</li>
                         <li>...</li>
                     </ol>
-                    {% if uri_exists_with_permission(controller="payment_status", action="list") %}<a href="{{ uri(controller="payment_status", action="list") }}">設定</a>{% endif %}
+                    {% if uri_exists_with_permission("admin:payment_middle_layer:payment_status:list") %}<a href="{{ uri("admin:payment_middle_layer:payment_status:list") }}">設定</a>{% endif %}
                 </div>
             </div>
         </div>

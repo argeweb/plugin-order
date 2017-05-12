@@ -50,16 +50,6 @@ plugins_helper = {
                 {'action': 'delete', 'name': u'刪除狀態'},
             ]
         },
-        'payment_status': {
-            'group': u'付款狀態',
-            'actions': [
-                {'action': 'list', 'name': u'付款狀態'},
-                {'action': 'add', 'name': u'新增付款狀態'},
-                {'action': 'edit', 'name': u'編輯付款狀態'},
-                {'action': 'view', 'name': u'檢視付款狀態'},
-                {'action': 'delete', 'name': u'刪除付款狀態'},
-            ]
-        },
         'freight_status': {
             'group': u'寄送狀態',
             'actions': [
@@ -78,16 +68,6 @@ plugins_helper = {
                 {'action': 'edit', 'name': u'編輯規則'},
                 {'action': 'view', 'name': u'檢視規則'},
                 {'action': 'delete', 'name': u'刪除規則'},
-            ]
-        },
-        'payment_type': {
-            'group': u'付款方式',
-            'actions': [
-                {'action': 'list', 'name': u'付款方式'},
-                {'action': 'add', 'name': u'新增付款方式'},
-                {'action': 'edit', 'name': u'編輯付款方式'},
-                {'action': 'view', 'name': u'檢視付款方式'},
-                {'action': 'delete', 'name': u'刪除付款方式'},
             ]
         },
         'freight_type': {

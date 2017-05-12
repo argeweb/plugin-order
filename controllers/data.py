@@ -23,8 +23,8 @@ class Data(Controller):
     @add_authorizations(auth.check_user)
     @route_with('/data/order/check_info', name='data:order:check_info')
     def check_info(self):
+        from plugins.payment_middle_layer.models.payment_type_model import PaymentTypeModel
         from ..models.freight_model import FreightModel, FreightTypeModel
-        from ..models.payment_type_model import PaymentTypeModel
         from ..models.order_rule_model import OrderRuleModel
         cu = None
         try:

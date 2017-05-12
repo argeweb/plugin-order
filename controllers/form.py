@@ -18,10 +18,10 @@ from plugins.shopping_cart.models.shopping_cart_item_model import ShoppingCartIt
 from plugins.user_contact_data.models.user_contact_data_model import UserContactDataModel
 from ..models.freight_model import FreightModel
 from ..models.order_item_model import OrderModel, OrderItemModel
-from ..models.payment_type_model import PaymentTypeModel
+from plugins.payment_middle_layer.models.payment_type_model import PaymentTypeModel
+from plugins.payment_middle_layer.models.payment_status_model import PaymentStatusModel
 from ..models.freight_type_model import FreightTypeModel
 from ..models.order_status_model import OrderStatusModel
-from ..models.payment_status_model import PaymentStatusModel
 from ..models.freight_status_model import FreightStatusModel
 
 
@@ -83,3 +83,25 @@ class Form(Controller):
         r = mail.send_width_template('order_create_send_to_admin', None, data_for_mail)
         self.context['data'] = {'result': 'success', 'order': self.util.encode_key(order)}
         self.context['message'] = u'已成功加入。'
+
+    @route
+    @add_authorizations(auth.check_user)
+    def gen_payment_information(self):
+        order = self.params.get_ndb_record('order_id')
+        if order is None:
+            return 'error order not exist'
+        payment_type = order.payment_type_object.get()
+        if payment_type is None:
+            return 'error payment type not exist'
+        from plugins.payment_middle_layer.models.payment_record_model import PaymentRecordModel
+        r = PaymentRecordModel()
+        r.source_ndb_key = self.util.encode_key(order)
+        r.source_params = self.util.stringify_json({'order_id': order.name})
+        r.source_uri = 'order:form:do'
+        r.payment_type = order.payment_type_object
+        r.user_object = self.application_user.key
+        r.title = u'支付訂單 %s 使用 %s ' % (order.order_no, payment_type.title)
+        r.detail = u'支付訂單 %s 使用 %s ' % (order.order_no, payment_type.title)
+        r.amount = order.need_pay_amount
+        r.put()
+        return self.redirect(r.get_pay_url(self, payment_type))

@@ -64,7 +64,7 @@ class Order(Controller):
         self.context['items'] = OrderItemModel.all_with_order(order=order)
 
     @route
-    @route_menu(list_name=u'backend', text=u'成本利潤', sort=1312, group=u'產品銷售')
+    @route_menu(list_name=u'backend', text=u'成本利潤', sort=1312, group=u'產品銷售', need_hr=True)
     def admin_cost(self):
         self.scaffold.display_in_list = ['order_no', 'total_amount', 'cost_for_items', 'cost_for_freight', 'cost_for_other', 'cost', 'profit', 'cost_remark', 'created']
         self.meta.view.template_name = 'backend/list.html'
@@ -77,9 +77,9 @@ class Order(Controller):
 
     @route
     def admin_reset_config(self):
+        from plugins.payment_middle_layer.models.payment_status_model import PaymentStatusModel
         from ..models.order_status_model import OrderStatusModel
         from ..models.freight_status_model import FreightStatusModel
-        from ..models.payment_status_model import PaymentStatusModel
         OrderStatusModel.create_default_status()
         FreightStatusModel.create_default_status()
         PaymentStatusModel.create_default_status()
