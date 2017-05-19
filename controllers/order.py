@@ -83,4 +83,4 @@ class Order(Controller):
         OrderStatusModel.create_default_status()
         FreightStatusModel.create_default_status()
         PaymentStatusModel.create_default_status()
-        return  self.json({'message': u'done'})
+        return self.json({'message': u'done'})

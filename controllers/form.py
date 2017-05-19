@@ -95,9 +95,10 @@ class Form(Controller):
             return 'error payment type not exist'
         from plugins.payment_middle_layer.models.payment_record_model import PaymentRecordModel
         r = PaymentRecordModel()
+        r.order_no = order.order_no
         r.source_ndb_key = self.util.encode_key(order)
         r.source_params = self.util.stringify_json({'order_id': order.name})
-        r.source_uri = 'order:form:do'
+        r.source_uri = 'form:order:pay_done'
         r.payment_type = order.payment_type_object
         r.user_object = self.application_user.key
         r.title = u'支付訂單 %s 使用 %s ' % (order.order_no, payment_type.title)
