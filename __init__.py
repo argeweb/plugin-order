@@ -27,6 +27,7 @@ plugins_helper = {
                 {'action': 'view', 'name': u'檢視訂單管理'},
                 {'action': 'delete', 'name': u'刪除訂單管理'},
                 {'action': 'config', 'name': u'訂單相關設定'},
+                {'action': 'cost', 'name': u'成本利潤'},
                 {'action': 'plugins_check', 'name': u'啟用停用模組'},
             ]
         },

@@ -13,9 +13,6 @@ from plugins.product_stock.models.warehouse_model import WarehouseModel
 
 
 class OrderItem(Controller):
-    class Meta:
-        components = (scaffold.Scaffolding, Pagination, Search)
-
     class Scaffold:
         display_in_list = ('user', 'order_type', 'title', 'spec_full_name', 'price', 'quantity', 'created')
 

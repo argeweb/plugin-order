@@ -14,8 +14,5 @@ from argeweb.components.search import Search
 
 
 class OrderStatus(Controller):
-    class Meta:
-        components = (scaffold.Scaffolding, Pagination, Search)
-
     def admin_list(self):
         return scaffold.list(self)

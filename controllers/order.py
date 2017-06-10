@@ -14,9 +14,6 @@ from argeweb.components.search import Search
 
 
 class Order(Controller):
-    class Meta:
-        components = (scaffold.Scaffolding, Pagination, Search)
-
     class Scaffold:
         # display_in_list = ('title_lang_zhtw', 'name')
         hidden_in_form = ['name', 'payment_type_title', 'freight_type_title',]
