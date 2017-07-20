@@ -1,6 +1,6 @@
 {% extends "backend/config.html" %}
-{% block layout_before_content %}
-<div class="ibox-content m-b-sm border-bottom">
+{% block layout_before_header %}
+<div class="ibox-content m-b-sm border-bottom page-header-big">
     <div class="p-xs">
         <div class="pull-left m-r-md">
             <i class="material-icons mid-icon brand-text-color">shopping_cart</i>
@@ -11,83 +11,86 @@
     </div>
 </div>
 {% endblock %}
+
 {% block layout_content %}
+<div class="wrapper wrapper-content">
     <div class="col-sm-12" style=" margin-top: 10px;margin-bottom: 30px;">
-    <div class="row">
-        <div class="col-sm-6">
+        <div class="row">
+            <div class="col-sm-6">
 
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>訂單狀態</h5>
-                </div>
-                <div class="ibox-content">
-                    <p>管理訂單的狀態。例如:</p>
-                    <ol>
-                        <li>備貨中</li>
-                        <li>已付款</li>
-                        <li>新訂單</li>
-                        <li>...</li>
-                    </ol>
-                    {% if uri_exists_with_permission(controller="order_status", action="list") %}<a href="{{ uri(controller="order_status", action="list") }}">設定</a>{% endif %}
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>訂單狀態</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <p>管理訂單的狀態。例如:</p>
+                        <ol>
+                            <li>備貨中</li>
+                            <li>已付款</li>
+                            <li>新訂單</li>
+                            <li>...</li>
+                        </ol>
+                        {% if uri_exists_with_permission(controller="order_status", action="list") %}<a href="{{ uri(controller="order_status", action="list") }}">設定</a>{% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6">
+            <div class="col-sm-6">
 
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>寄送狀態</h5>
-                </div>
-                <div class="ibox-content">
-                    <p>管理訂單的寄送狀態。例如:</p>
-                    <ol>
-                        <li>未出貨</li>
-                        <li>備貨中</li>
-                        <li>已寄達</li>
-                        <li>...</li>
-                    </ol>
-                    {% if uri_exists_with_permission(controller="freight_status", action="list") %}<a href="{{ uri(controller="freight_status", action="list") }}">設定</a>{% endif %}
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>寄送狀態</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <p>管理訂單的寄送狀態。例如:</p>
+                        <ol>
+                            <li>未出貨</li>
+                            <li>備貨中</li>
+                            <li>已寄達</li>
+                            <li>...</li>
+                        </ol>
+                        {% if uri_exists_with_permission(controller="freight_status", action="list") %}<a href="{{ uri(controller="freight_status", action="list") }}">設定</a>{% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6">
+            <div class="col-sm-6">
 
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>付款狀態</h5>
-                </div>
-                <div class="ibox-content">
-                    <p>管理訂單的付款狀態。例如:</p>
-                    <ol>
-                        <li>退款中</li>
-                        <li>已付款</li>
-                        <li>待付款</li>
-                        <li>...</li>
-                    </ol>
-                    {% if uri_exists_with_permission("admin:payment_middle_layer:payment_status:list") %}<a href="{{ uri("admin:payment_middle_layer:payment_status:list") }}">設定</a>{% endif %}
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>付款狀態</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <p>管理訂單的付款狀態。例如:</p>
+                        <ol>
+                            <li>退款中</li>
+                            <li>已付款</li>
+                            <li>待付款</li>
+                            <li>...</li>
+                        </ol>
+                        {% if uri_exists_with_permission("admin:payment_middle_layer:payment_status:list") %}<a href="{{ uri("admin:payment_middle_layer:payment_status:list") }}">設定</a>{% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6">
+            <div class="col-sm-6">
 
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>重置</h5>
-                </div>
-                <div class="ibox-content">
-                    <p>重置下列項目。</p>
-                    <ol>
-                        <li>訂單狀態</li>
-                        <li>寄送狀態</li>
-                        <li>付款狀態</li>
-                    </ol>
-                    {% if uri_exists_with_permission(controller="order", action="reset_config") %}
-                        <a href="{{ uri(controller="order", action="reset_config") }}" class="btn btn-json">重置</a>
-                    {% endif %}
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>重置</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <p>重置下列項目。</p>
+                        <ol>
+                            <li>訂單狀態</li>
+                            <li>寄送狀態</li>
+                            <li>付款狀態</li>
+                        </ol>
+                        {% if uri_exists_with_permission(controller="order", action="reset_config") %}
+                            <a href="{{ uri(controller="order", action="reset_config") }}" class="btn btn-json">重置</a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
-    </div>
+</div>
 {% endblock %}
