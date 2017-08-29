@@ -1,0 +1,35 @@
+- kind: OrderItemModel
+  properties:
+  - name: order
+  - name: sort
+    direction: desc
+
+- kind: OrderModel
+  properties:
+  - name: status_object
+  - name: sort
+    direction: desc
+
+- kind: OrderModel
+  properties:
+  - name: user
+  - name: sort
+    direction: desc
+
+- kind: OrderRuleModel
+  properties:
+  - name: is_enable
+  - name: sort
+    direction: desc
+
+- kind: FreightModel
+  properties:
+  - name: is_enable
+  - name: sort
+    direction: desc
+
+- kind: FreightTypeModel
+  properties:
+  - name: is_enable
+  - name: sort
+    direction: desc

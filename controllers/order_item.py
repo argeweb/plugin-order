@@ -6,15 +6,11 @@
 # Web: http://www.yooliang.com/
 # Date: 2017/3/1.
 
-from argeweb import Controller, scaffold, route_menu, route_with, route
-from argeweb.components.pagination import Pagination
-from argeweb.components.search import Search
-from plugins.product_stock.models.warehouse_model import WarehouseModel
-
+from argeweb import Controller, scaffold, route
 
 class OrderItem(Controller):
     class Scaffold:
-        display_in_list = ('user', 'order_type', 'title', 'spec_full_name', 'price', 'quantity', 'created')
+        display_in_list = ['user', 'order_type', 'title', 'spec_full_name', 'price', 'quantity', 'created']
 
     def on_scaffold_before_apply(self, controller, container, item):
         item.change_quantity(item.quantity)

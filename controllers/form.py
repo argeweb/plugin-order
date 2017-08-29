@@ -5,24 +5,14 @@
 # Author: Qi-Liang Wen (温啓良）
 # Web: http://www.yooliang.com/
 # Date: 2017/3/1.
-from random import randint
 from datetime import datetime
-from argeweb import Controller, scaffold, route_menu, route_with, route, settings
+from argeweb import Controller, scaffold, route_with, route
 from argeweb import auth, add_authorizations
 from argeweb.components.pagination import Pagination
 from argeweb.components.csrf import CSRF, csrf_protect
 from argeweb.components.search import Search
-from plugins.mail import Mail
 from plugins.user_shop_point.models.user_shop_point_model import UserShopPointModel
-from plugins.shopping_cart.models.shopping_cart_item_model import ShoppingCartItemModel
-from plugins.user_contact_data.models.user_contact_data_model import UserContactDataModel
-from ..models.freight_model import FreightModel
-from ..models.order_item_model import OrderModel, OrderItemModel
-from plugins.payment_middle_layer.models.payment_type_model import PaymentTypeModel
-from plugins.payment_middle_layer.models.payment_status_model import PaymentStatusModel
-from ..models.freight_type_model import FreightTypeModel
-from ..models.order_status_model import OrderStatusModel
-from ..models.freight_status_model import FreightStatusModel
+from ..models.order_item_model import OrderModel
 
 
 class Form(Controller):
@@ -32,7 +22,7 @@ class Form(Controller):
         Model = OrderModel
 
     class Scaffold:
-        display_in_form = ('user_name', 'account', 'is_enable', 'sort', 'created', 'modified')
+        display_in_form = ['user_name', 'account', 'is_enable', 'sort', 'created', 'modified']
 
     def check(self, allow_get=False):
         self.context['data'] = {'result': 'failure'}
@@ -68,7 +58,6 @@ class Form(Controller):
                 order.shopping_cash, u'[系統] 由訂單 %s 扣除' % order.order_no,
                 order.order_no, order.total_amount)
             user_point_item.put()
-        mail = Mail(self)
         data_for_mail = {
             'site_name': self.host_information.site_name,
             'name': self.application_user.name,
@@ -79,8 +68,20 @@ class Form(Controller):
         }
         for p in order._properties:
             data_for_mail[p] = getattr(order, p)
-        r = mail.send_width_template('order_create_send_to_user', self.application_user.email, data_for_mail)
-        r = mail.send_width_template('order_create_send_to_admin', None, data_for_mail)
+
+        self.fire(
+            event_name='send_mail_width_template',
+            template_name='order_create_send_to_user',
+            send_to=self.application_user.email,
+            data=data_for_mail
+        )
+        self.fire(
+            event_name='send_mail_width_template',
+            template_name='order_create_send_to_admin',
+            send_to=None,
+            data=data_for_mail
+        )
+
         self.context['data'] = {'result': 'success', 'order': self.util.encode_key(order)}
         self.context['message'] = u'已成功加入。'
 
@@ -93,16 +94,22 @@ class Form(Controller):
         payment_type = order.payment_type_object.get()
         if payment_type is None:
             return 'error payment type not exist'
-        from plugins.payment_middle_layer.models.payment_record_model import PaymentRecordModel
-        r = PaymentRecordModel()
-        r.order_no = order.order_no
-        r.source_ndb_key = self.util.encode_key(order)
-        r.source_params = self.util.stringify_json({'order_id': order.name})
-        r.callback_uri = 'form:order:after_pay'
-        r.payment_type = order.payment_type_object
-        r.user_object = self.application_user.key
-        r.title = u'支付訂單 %s 使用 %s ' % (order.order_no, payment_type.title)
-        r.detail = u'支付訂單 %s 使用 %s ' % (order.order_no, payment_type.title)
-        r.amount = order.need_pay_amount
-        r.put()
-        return self.redirect(r.get_pay_url(self, payment_type))
+        if self.application_user is None:
+            return 'error user not exist'
+        payment_record = self.fire(
+            event_name='create_payment',
+            title=u'支付訂單 %s 使用 %s ' % (order.order_no, payment_type.title),
+            detail=u'支付訂單 %s 使用 %s ' % (order.order_no, payment_type.title),
+            amount=order.need_pay_amount,
+            source=order,
+            source_params={'order_no': order.order_no},
+            source_callback_uri='form:order:after_pay',
+            payment_type=payment_type,
+            user=self.application_user,
+            status='pending_payment',
+        )
+        return self.redirect(payment_record.pay_url)
+
+    @route
+    def after_pay(self):
+        return self.json(self.params.get_ndb_record('payment_record'))

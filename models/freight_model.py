@@ -17,4 +17,4 @@ class FreightModel(BasicModel):
     start_amount = Fields.IntegerProperty(verbose_name=u'起始金額', default=0)
     end_amount = Fields.IntegerProperty(verbose_name=u'結束金額', default=0)
     freight_amount = Fields.IntegerProperty(verbose_name=u'運費', default=0)
-    is_enable = Fields.BooleanProperty(default=True, verbose_name=u'啟用')
+    is_enable = Fields.BooleanProperty(verbose_name=u'啟用', default=True)

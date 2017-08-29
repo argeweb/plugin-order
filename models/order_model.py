@@ -5,6 +5,7 @@
 # Author: Qi-Liang Wen (温啓良）
 # Web: http://www.yooliang.com/
 # Date: 2017/3/1.
+import time
 
 from argeweb import BasicModel
 from argeweb import Fields
@@ -13,7 +14,7 @@ from plugins.payment_middle_layer.models.payment_type_model import PaymentTypeMo
 from plugins.payment_middle_layer.models.payment_status_model import PaymentStatusModel
 from freight_type_model import FreightTypeModel
 from freight_status_model import FreightStatusModel
-from order_status_model import OrderStatusModel, order_status_name_index
+from order_status_model import OrderStatusModel
 
 
 class OrderModel(BasicModel):
@@ -94,7 +95,7 @@ class OrderModel(BasicModel):
     def all_with_status(cls, status=None, *args, **kwargs):
         if status is None:
             return cls.query().order(-cls.sort)
-        s = OrderStatusModel.find_by_name(status)
+        s = OrderStatusModel.get_by_name(status)
         return cls.query(cls.status_object==s.key).order(-cls.sort)
 
     @classmethod
@@ -175,13 +176,13 @@ class OrderModel(BasicModel):
             self.need_pay_amount = 0
 
     def set_order_status(self, name):
-        self.status_object = OrderStatusModel.find_by_name(name).key
+        self.status_object = OrderStatusModel.get_by_name(name).key
 
     def set_freight_status(self, name):
-        self.freight_status_object = FreightStatusModel.find_by_name(name).key
+        self.freight_status_object = FreightStatusModel.get_by_name(name).key
 
     def set_payment_status(self, name):
-        self.payment_status_object = PaymentStatusModel.find_by_name(name).key
+        self.payment_status_object = PaymentStatusModel.get_by_name(name).key
 
     def set_freight_amount(self, subtotal_amount):
         from ..models.freight_model import FreightModel, FreightTypeModel
@@ -249,6 +250,7 @@ class OrderModel(BasicModel):
             self.shopping_cash = session['shop_point_use']
         if 'shop_point_use_in_currency' in session:
             self.currency_shopping_cash = session['shop_point_use_in_currency']
+
     @property
     def items(self):
         from order_item_model import OrderItemModel

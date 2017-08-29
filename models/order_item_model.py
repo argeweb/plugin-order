@@ -10,7 +10,9 @@ from argeweb import BasicModel
 from argeweb import Fields
 from plugins.product_stock.models.stock_keeping_unit_model import StockKeepingUnitModel
 from plugins.application_user.models.application_user_model import ApplicationUserModel
-from plugins.product.models.product_config_model import ProductConfigModel
+from plugins.product.models.config_model import ConfigModel
+from plugins.product.models.product_model import ProductModel
+
 from order_model import OrderModel
 from time import time
 
@@ -23,9 +25,10 @@ class OrderItemModel(BasicModel):
     order_be_delete = Fields.BooleanProperty(verbose_name=u'訂單是否被刪除', default=False)
 
     title = Fields.StringProperty(verbose_name=u'產品名稱')
-    product_no = Fields.StringProperty(verbose_name=u'產品編號')
-    product_name = Fields.StringProperty(verbose_name=u'產品名稱(系統)', default=u'')
-    product_image = Fields.StringProperty(verbose_name=u'產品圖片', default=u'')
+    product_object = Fields.KeyProperty(verbose_name=u'所屬產品', kind=ProductModel)
+    product_name = Fields.SearchingHelperProperty(verbose_name=u'產品名稱', target='product_object', target_field_name='name')
+    product_no = Fields.SearchingHelperProperty(verbose_name=u'產品編號', target='product_object', target_field_name='product_no')
+    product_image = Fields.SearchingHelperProperty(verbose_name=u'產品圖片', target='product_object', target_field_name='image')
     sku_full_name = Fields.StringProperty(verbose_name=u'產品最小庫存名稱')
     spec_full_name = Fields.StringProperty(verbose_name=u'完整規格名稱')
     price = Fields.FloatProperty(verbose_name=u'銷售價格', default=-1)
@@ -34,6 +37,13 @@ class OrderItemModel(BasicModel):
     quantity_has_count = Fields.IntegerProperty(verbose_name=u'已計入庫存的數量', default=0)
     can_add_to_order = Fields.BooleanProperty(verbose_name=u'加至訂單中', default=False)
     expired_time = Fields.FloatProperty(verbose_name=u'庫存回收時間')
+
+    try:
+        from plugins.supplier.models.supplier_model import SupplierModel
+    except ImportError:
+        class SupplierModel(BasicModel):
+            pass
+    supplier = Fields.CategoryProperty(kind=SupplierModel, verbose_name=u'供應商')
 
     #  0 = 現貨, 1=預購
     order_type = Fields.StringProperty(verbose_name=u'訂購方式')
@@ -65,6 +75,11 @@ class OrderItemModel(BasicModel):
             item.user = user.key
             item.order = order.key
             item.order_type_value = order_type_value
+            item.product_object = product.key
+            try:
+                item.supplier = product.supplier.get().key
+            except:
+                pass
             if order_type_value == 0:
                 item.order_type = u'現貨'
             else:
@@ -73,9 +88,6 @@ class OrderItemModel(BasicModel):
         item._product = product
         item._order = order
         item.title = product.title
-        item.product_no = product.product_no
-        item.product_image = product.image
-        item.product_name = product.name
         item.sku_full_name = sku.sku_full_name
         item.spec_full_name = sku.spec_full_name
         item.change_quantity(quantity)
@@ -140,7 +152,7 @@ class OrderItemModel(BasicModel):
             self.cost = product.cost
 
         if self.order_type_value == 0:
-            config = ProductConfigModel.find_by_product(product)
+            config = ConfigModel.find_by_product(product)
             if config.stock_recover:
                 self.expired_time = time() + config.stock_recover_time
             else:

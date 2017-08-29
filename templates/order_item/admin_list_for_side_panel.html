@@ -1,11 +1,11 @@
 {% extends "backend/form.html" %}
-{% block layout_header %}{% endblock %}
-{% block layout_content %}
+{% block page_header %}{% endblock %}
+{% block page_content_without_wrapper %}
     <div class="sidebar-container" style="width: auto; height: 100%;" id="app">
         <ul class="nav nav-tabs navs-3">
             <li class="active"><a data-toggle="tab" href="#tab-order-item" aria-expanded="true">訂購項目</a></li>
             <li class=""><a data-toggle="tab" href="#tab-insert-item" aria-expanded="false">新增項目</a></li>
-            <li class=""><a data-toggle="tab" href="#tab-other" aria-expanded="false"><span class="hidden-xs">相關操作</span><span class="visible-xs">操作</span></a></li>
+            <li class=""><a data-toggle="tab" href="#tab-other" aria-expanded="false">出庫操作</a></li>
         </ul>
 
         <div class="tab-content">
@@ -90,7 +90,7 @@
             <div id="tab-other" class="tab-pane">
             {%- if order_record -%}
                 <div class="sidebar-title">
-                    {% if uri_exists_with_permission("admin:product_stock:stock:side_panel_for_order", order_key=print_key(order_record)) %}
+                    {% if uri_permission("admin:product_stock:stock:side_panel_for_order", order_key=print_key(order_record)) %}
                         <h4>訂單出庫</h4>
                         <small>將訂單中的全部項目進行出庫，若有預購或是數量不足時，將額外建一筆入庫記錄，建議您為了資料的建全性，還請先手動進行入庫作業。</small>
                         <a href="{{ uri("admin:product_stock:stock:side_panel_for_order", order_key=print_key(order_record),request_type='all') }}" class="btn brand-bg-color"
@@ -116,7 +116,7 @@
     </div>
 {% endblock %}
 
-{% block layout_scripts %}
+{% block page_scripts %}
 <script type="text/javascript">
     (function(page){
         var p = methods.sortByKey([{% for item in context[scaffolding.plural] %}{
@@ -137,7 +137,7 @@
             "quantity": {{ item.quantity }},
             "quantity_has_count": {{ item.quantity_has_count }},
             "price": {{ item.price }},
-            "stock_url": "{% if uri_exists_with_permission("admin:product_stock:stock:side_panel_for_product", target=print_key(product)) %}{{ uri("admin:product_stock:stock:side_panel_for_product", target=print_key(product)) }}{% endif %}",
+            "stock_url": "{% if uri_permission("admin:product_stock:stock:side_panel_for_product", target=print_key(product)) %}{{ uri("admin:product_stock:stock:side_panel_for_product", target=print_key(product)) }}{% endif %}",
             "modified": "{{ print_value(item.modified) }}"
         },{% endfor %}], "spec_full_name");
         page['app'] = new Vue({

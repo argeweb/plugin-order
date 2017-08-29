@@ -6,7 +6,7 @@
 # Web: http://www.yooliang.com/
 # Date: 2017/3/1.
 
-from argeweb import ViewFunction, ViewDatastore
+from argeweb import ViewDatastore
 from models import *
 from models.order_model import OrderModel
 from models.order_item_model import OrderItemModel
@@ -15,7 +15,7 @@ ViewDatastore.register('order_list', OrderModel.all)
 ViewDatastore.register('order_items', OrderItemModel.all_with_order)
 
 plugins_helper = {
-    'title': u'訂單管理模組',
+    'title': u'訂單管理',
     'desc': u'訂單相關之管理',
     'controllers': {
         'order': {
@@ -91,5 +91,6 @@ plugins_helper = {
                 {'action': 'delete', 'name': u'刪除運費'},
             ]
         }
-    }
+    },
+    'install_uri': 'order:order:after_install'
 }

@@ -24,4 +24,4 @@ class OrderRuleModel(BasicModel):
     calculate_target = Fields.StringProperty(verbose_name=u'計算對象', default=u'')
     multiplication = Fields.StringProperty(verbose_name=u'先增減乘數(%)', default=u'')
     addition = Fields.StringProperty(verbose_name=u'再增減數量', default=u'')
-    is_enable = Fields.BooleanProperty(default=True, verbose_name=u'啟用')
+    is_enable = Fields.BooleanProperty(verbose_name=u'啟用', default=True)
