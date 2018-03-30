@@ -6,25 +6,23 @@
 # Web: http://www.yooliang.com/
 # Date: 2017/3/1.
 
-from argeweb import Controller, scaffold, route
+from argeweb import Controller, scaffold, route, route_menu
+
 
 class OrderItem(Controller):
     class Scaffold:
         display_in_list = ['user', 'order_type', 'title', 'spec_full_name', 'price', 'quantity', 'created']
 
-    def on_scaffold_before_apply(self, controller, container, item):
-        item.change_quantity(item.quantity)
-
     def admin_add(self):
-        self.events.scaffold_before_apply += self.on_scaffold_before_apply
         scaffold.add(self)
 
+    @route_menu(list_name=u'super_user', group=u'記錄查看', need_hr=True, text=u'訂單項目', sort=1333)
     def admin_list(self):
         return scaffold.list(self)
 
     @route
     def admin_list_for_side_panel(self, target=''):
-        def query_factory_only_codefile(controller):
+        def query_factory_with_order(controller):
             m = self.meta.Model
             return m.all_with_order(order_record)
 
@@ -33,7 +31,7 @@ class OrderItem(Controller):
             return
 
         order_record = self.params.get_ndb_record(target)
-        self.scaffold.query_factory = query_factory_only_codefile
+        self.scaffold.query_factory = query_factory_with_order
         self.context['order_record'] = order_record
         return scaffold.list(self)
 
@@ -47,24 +45,67 @@ class OrderItem(Controller):
         subtotal_amount = 0.0
         subtotal_cost = 0.0
         for index in xrange(0, length):
-            r = self.params.get_ndb_record('order_item_key_%s' % str(index))
-            q = self.params.get_integer('order_item_quantity_%s' % str(index))
-            if r is None:
+            item = self.params.get_ndb_record('order_item_key_%s' % str(index))
+            quantity = self.params.get_integer('order_item_quantity_%s' % str(index))
+            if item is None:
                 continue
-            if q <= 0:
-                r.delete()
+            if quantity <= 0:
+                item.delete()
             else:
-                r.change_quantity(q)
-                r.put()
-                subtotal_amount += r.quantity * r.price
-                subtotal_cost += r.quantity * r.cost
-                data.append(r)
-        order.calc_total_amount(subtotal_amount)
-        order.calc_total_cost(subtotal_cost)
-        order.calc_currency_amount()
+                self.fire(
+                    event_name='order_item_change_quantity',
+                    item=item,
+                    quantity=quantity
+                )
+                item.put()
+                subtotal_cost += item.quantity * item.cost
+                data.append(item)
+        order.calc_size_weight_price_and_put()
+        # 貨幣模組
+        currency = None
+        try:
+            from plugins.currency.models.currency_model import CurrencyModel
+            currency = CurrencyModel.get_current_or_main_currency(order.currency_name)
+        except:
+            pass
+        order.set_currency(currency)
+        order.calc_amount(order.total_price)
         order.put()
         self.context['message'] = u'完成'
         self.context['data'] = {'result': 'success', 'items': data}
+
+    @route
+    def admin_insert_with_spec(self):
+        self.meta.change_view('json')
+        order = self.params.get_ndb_record('order_key')
+        spec = self.params.get_ndb_record('spec_key')
+        quantity = self.params.get_integer('quantity')
+        order_type = self.params.get_integer('order_type')
+        try:
+            user = order.user.get()
+        except:
+            return self.json_failure_message(u'訂單缺少了訂購者，請先設置該欄位')
+        item = self.meta.Model.get_or_create(user, spec, order, order_type)
+        # TODO 應該回傳  fire 事件的結果
+        self.fire(
+            event_name='order_item_change_quantity',
+            item=item,
+            quantity=quantity
+        )
+        item.put()
+        order.calc_size_weight_price_and_put()
+        # 貨幣模組
+        currency = None
+        try:
+            from plugins.currency.models.currency_model import CurrencyModel
+            currency = CurrencyModel.get_current_or_main_currency(order.currency_name)
+        except:
+            pass
+        order.set_currency(currency)
+        order.calc_amount(order.total_price)
+        order.put()
+        self.json_success_message(u'完成')
+
 
     @route
     def admin_insert_with_sku(self):

@@ -11,6 +11,6 @@ from argeweb import Controller, scaffold, route_menu
 
 
 class FreightType(Controller):
-    @route_menu(list_name=u'backend', group=u'產品管理', text=u'寄送方式', sort=1322)
+    @route_menu(list_name=u'backend', group=u'產品管理', text=u'寄送方式', sort=1122, need_hr=True)
     def admin_list(self):
         return scaffold.list(self)

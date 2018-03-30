@@ -14,11 +14,9 @@ from argeweb.components.search import Search
 
 class Data(Controller):
     class Meta:
-        components = (scaffold.Scaffolding, Pagination, Search, CSRF)
         default_view = 'json'
 
     @route
-    @add_authorizations(auth.check_user)
     @route_with('/data/order/check_info', name='data:order:check_info')
     def check_info(self):
         from plugins.payment_middle_layer.models.payment_type_model import PaymentTypeModel

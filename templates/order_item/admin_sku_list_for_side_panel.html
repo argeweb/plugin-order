@@ -5,6 +5,7 @@
         <ul class="nav nav-tabs navs-3">
             <li class="active"><a data-toggle="tab" href="#tab-order-item" aria-expanded="true">訂購項目</a></li>
             <li class=""><a data-toggle="tab" href="#tab-insert-item" aria-expanded="false">新增項目</a></li>
+            <li class=""><a data-toggle="tab" href="#tab-other" aria-expanded="false">出庫操作</a></li>
         </ul>
 
         <div class="tab-content">
@@ -28,13 +29,17 @@
                     <ul class="sidebar-list">
                         <li style="border-bottom: none;" v-for="(item, index) in order_items">
                             <div class="small pull-right m-t-xs moment-vue-from-now" :data-vue-from-now="item.modified"></div>
-                            <h4 :id="'spec-name-' + item.key">{{item.title}}</h4>
+                            <h4 :id="'spec-name-' + item.key">{{item.order_type}} {{item.title}}</h4>
                             <div class="small text-muted m-t-xs">
-                                型號： <span style="width:230px; display: inline-block;">{{item.product_no}}</span><br>
+                                <a v-if="item.stock_url != ''" target="aside_area" :href="item.stock_url" class="btn brand-bg-color pull-right" style="color: #fff;">管理庫存</a>
                                 規格： <span style="width:230px; display: inline-block;">{{item.spec_full_name}}</span><br>
                                 價格： <span style="width: 30px; display: inline-block;">{{item.price}}</span><br>
+                                庫存： <span style="width:230px; display: inline-block;">{{item.sku_quantity}}
+                                　　預估： {{item.sku_estimate}}
+                                　　訂單： {{item.sku_in_order_quantity}}
+                                　　預購： {{item.sku_pre_order_quantity}}</span><br>
                                 數量： <span style="width: 30px; display: inline-block;">{{item.quantity}}</span><br>
-                                <input type="hidden" :name="'order_item_key_' + index" :value="item.__key__">
+                                <input type="hidden" :name="'order_item_key_' + index" :value="item.key">
                                 <input type="number" :name="'order_item_quantity_' + index" :id="'order-item-' + item.key"
                                        class="form-control field-control field-type-string-field" min="0" :max="getMaxQuantity(item)"
                                        :value="item.quantity">
@@ -51,7 +56,7 @@
             </div>
             <div id="tab-insert-item" class="tab-pane">
             {%- if order_record -%}
-                <form method="POST" action="{{ uri('admin:order:order_item:insert_with_spec') }}"
+                <form method="POST" action="{{ uri('admin:order:order_item:insert_with_sku') }}"
                       data-return-encoding="{{ scaffolding.form_return_encoding }}"
                       enctype="{{ scaffolding.form_encoding }}" accept-charset="UTF-8"
                       role="form" id="insert-order-item">
@@ -61,11 +66,13 @@
                     <multiselect label="label" @search-change="asyncFindProduct" :show-labels="false" @select="productSelect"
                                  track-by="data" :options="products" :allow-empty="false" placeholder="請搜尋並選擇產品"></multiselect>
                     <h3>規格</h3>
-                    <multiselect label="full_name" @select="specSelect" :show-labels="false"
+                    <multiselect label="spec_full_name" @select="specSelect" :show-labels="false"
                                  track-by="__key__" :options="specs" :allow-empty="false" placeholder="請選擇規格"></multiselect>
+                    <h3>類型</h3>
+                    <multiselect :options="order_type_options" :show-labels="false" placeholder="請選擇訂購類型" label="label" track-by="name" @select="typeSelect"></multiselect>
                     <h3>數量 <span v-if="max_quantity > 0">(可用數量{{max_quantity}})</span></h3>
-                    <input type="hidden" name="spec_key" v-model="selected_spec"/>
-                    <input type="hidden" name="order_type" value="0" />
+                    <input type="hidden" name="sku_key" v-model="selected_spec"/>
+                    <input type="hidden" name="order_type" v-model="selected_order_type"/>
                     <input type="number" name="quantity" class="form-control field-control" :max="max_quantity" />
                     <div style="height: 22px;margin: 6px 0 0 0;">
                         <a id="btn-insert-order-item" class="btn brand-bg-color pull-right" style="color: #fff;">新增項目</a>
@@ -113,14 +120,14 @@
 <script type="text/javascript">
     (function(page){
         var p = methods.sortByKey([{% for item in context[scaffolding.plural] %}{
-            {% set spec = item.spec.get() %}
-            {% set product = spec.product_object.get() %}
+            {% set sku = item.sku.get() %}
+            {% set product = sku.product_object.get() %}
             "__key__": "{{ print_key(item) }}",
-            "sku": "{{ spec.name }}",
-            "sku_quantity": "{{ spec.quantity }}",
-            "sku_estimate": "{{ spec.estimate }}",
-            "sku_in_order_quantity": "{{ spec.in_order_quantity }}",
-            "sku_pre_order_quantity": "{{ spec.pre_order_quantity }}",
+            "sku": "{{ sku.name }}",
+            "sku_quantity": "{{ sku.quantity }}",
+            "sku_estimate": "{{ sku.estimate }}",
+            "sku_in_order_quantity": "{{ sku.in_order_quantity }}",
+            "sku_pre_order_quantity": "{{ sku.pre_order_quantity }}",
             "product_no": "{{ item.product_no }}",
             "product_image": "{{ item.product_image }}",
             "order_type": "{{ item.order_type }}",
@@ -154,13 +161,18 @@
             },
             computed: {
                 max_quantity: function () {
-                    return 999;
+                    if (this.selected_order_type == "0"){
+                        return this.can_insert_quantity;
+                    }else{
+                        return 999;
+                    }
                 }
             },
             methods: {
                 getMaxQuantity: function(item){
                     if (item.order_type_value == "0")
-                        return 999;
+                        return item.sku_quantity - item.sku_estimate + item.quantity_has_count;
+                    return 999;
                 },
                 asyncFindProduct: function(query) {
                     if (query != "" && query.length >= 2){
@@ -172,15 +184,15 @@
                     }
                 },
                 productSelect: function(selectedOption, id){
-                    json("{{ uri('admin:product:product_specification:get_spec_detail') }}", "product=" + selectedOption.data, function(result){
+                    json("{{ uri('admin:product_stock:stock:get_sku_detail') }}", "product=" + selectedOption.data, function(result){
                         page["app"].specs = result.data
                     })
                 },
                 specSelect: function(selectedOption, id){
                     this.selected_spec = selectedOption.__key__;
-                    for(let j=0;j<page["app"].specs.length;j++){
-                        if (page["app"].specs[j].__key__ == this.selected_spec){
-                            page['app'].can_insert_quantity = 999;
+                    for(let j=0;j<page['app'].specs.length;j++){
+                        if (page['app'].specs[j].__key__ == this.selected_spec){
+                            page['app'].can_insert_quantity = page['app'].specs[j].quantity;
                         }
                     }
                 },

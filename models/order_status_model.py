@@ -15,7 +15,7 @@ order_status = {
     'already_paid': u'已付款',
     'stocking': u'備貨中',
     'shipped': u'已出貨',
-    'closed': u'關閉',
+    'closed': u'訂單完成',
     'abnormal_flow': u'異常流程',
     'order_cancel': u'取消訂單'
 }
@@ -24,7 +24,6 @@ order_status = {
 class OrderStatusModel(BasicModel):
     name = Fields.StringProperty(verbose_name=u'識別名稱')
     title = Fields.StringProperty(verbose_name=u'訂單狀態名稱', default=u'未命名')
-    is_enable = Fields.BooleanProperty(verbose_name=u'啟用', default=True)
 
     @classmethod
     def create_default_status(cls):

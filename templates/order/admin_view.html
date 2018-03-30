@@ -1,16 +1,16 @@
 {% extends "backend/form.html" %}
-{% block page_content %}
+{% block page_content_without_wrapper %}
     <div class="wrapper wrapper-content">
         <div class="row">
             <div class="col-sm-12">
-                <div class="ibox-content p-xl">
+                <div class="ibox-report p-xl">
                     <div class="row">
                         <div class="col-sm-6">
                             <address>
                                 <strong>{{ order.recipient_name }}</strong><br>
                                 {{ order.recipient_address_zip }}-{{ order.recipient_address_city }}{{ order.recipient_address_district }}{{ order.recipient_address_detail }}
                                 <br>
-                                <abbr title="Phone">聯絡電話：</abbr> {{ order.recipient_telephone }} | {{ order.recipient_mobile }}
+                                <abbr>聯絡電話：</abbr> {{ order.recipient_telephone }} | {{ order.recipient_mobile }}
                             </address>
                         </div>
 
@@ -49,33 +49,28 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- /table-responsive -->
 
                     <table class="table invoice-total">
+                        <thead></thead>
                         <tbody>
                             <tr>
-                                <td><strong>小計金額：</strong>
-                                </td>
+                                <td><strong>小計金額：</strong></td>
                                 <td>${{ order.subtotal_amount }}元</td>
                             </tr>
                             <tr>
-                                <td><strong>運費：</strong>
-                                </td>
+                                <td><strong>運費：</strong></td>
                                 <td>${{ order.freight_amount }}元</td>
                             </tr>
                             <tr>
-                                <td><strong>總金額：</strong>
-                                </td>
+                                <td><strong>總金額：</strong></td>
                                 <td>${{ order.total_amount }}元</td>
                             </tr>
                             <tr>
-                                <td><strong>使用的購物金：</strong>
-                                </td>
+                                <td><strong>使用的購物金：</strong></td>
                                 <td>${{ order.shopping_cash }}元</td>
                             </tr>
                             <tr>
-                                <td><strong>應付金額：</strong>
-                                </td>
+                                <td><strong>應付金額：</strong></td>
                                 <td>${{ order.need_pay_amount }}元</td>
                             </tr>
                         </tbody>
@@ -83,4 +78,5 @@
                 </div>
             </div>
         </div>
+    </div>
 {% endblock %}

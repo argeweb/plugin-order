@@ -33,3 +33,27 @@
   - name: is_enable
   - name: sort
     direction: desc
+
+- kind: OrderModel
+  properties:
+  - name: supplier
+  - name: created
+    direction: desc
+
+- kind: OrderDiscountModel
+  properties:
+  - name: order
+  - name: sort
+    direction: desc
+
+- kind: OrderModel
+  properties:
+  - name: is_closed
+  - name: is_report
+  - name: order_close_datetime
+
+- kind: OrderModel
+  properties:
+  - name: is_closed
+  - name: is_invoice_created
+  - name: order_close_datetime

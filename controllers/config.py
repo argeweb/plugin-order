@@ -19,16 +19,19 @@ class Config(Controller):
             controller.fire('enable_role_action', action_uri='plugins.supplier.controllers.supplier.list')
         else:
             controller.fire('disable_role_action', action_uri='plugins.supplier.controllers.supplier.list')
+        if item.show_cost is True:
+            controller.fire('enable_role_action', action_uri='plugins.order.controllers.order.cost')
+        else:
+            controller.fire('disable_role_action', action_uri='plugins.order.controllers.order.cost')
 
     @route
-    @route_menu(list_name=u'super_user', text=u'訂單相關設定', sort=1398, group=u'訂單管理', need_hr=True)
+    @route_menu(list_name=u'super_user', text=u'訂單相關設定', sort=1398, group=u'銷售相關', need_hr=True)
     def admin_config(self):
-        config_record = self.meta.Model.get_or_create_by_name('order_config')
-        self.meta.view.template_name = '/product/config.html'
+        config_record = self.meta.Model.get_config()
         self.events.scaffold_after_save += self.change_config
         return scaffold.edit(self, config_record.key)
 
     @route
     def taskqueue_after_install(self):
-        config_record = self.meta.Model.get_or_create_by_name('order_config')
+        config_record = self.meta.Model.get_config()
         return 'done'

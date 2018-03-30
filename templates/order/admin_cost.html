@@ -30,7 +30,7 @@
         {%- endfor -%}
         {% if len(scaffolding.actions_in_list) %}
             {% for action in scaffolding.actions_in_list %}
-                <td><a class="btn btn-sm {{ action.button_class }}"
+                <td><a class="btn btn-sm {% if action.use_json %}btn-json{% endif %}"
                        href="{{ uri_action_link(action, item) }}">{{ action.button }}</a> </td>
             {% endfor %}
         {% endif %}

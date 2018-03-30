@@ -14,3 +14,8 @@ class FreightTypeModel(BasicModel):
     name = Fields.StringProperty(verbose_name=u'識別名稱')
     title = Fields.StringProperty(verbose_name=u'寄送方式名稱', default=u'未命名')
     is_enable = Fields.BooleanProperty(verbose_name=u'啟用', default=True)
+
+    @property
+    def items(self):
+        from freight_model import FreightModel
+        return FreightModel.find_by_properties(freight_type=self.key)
